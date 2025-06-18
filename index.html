@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fantasy Basketball Mock Draft 2024-25</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .loading {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .success {
+            background-color: #e8f5e8;
+            color: #2e7d32;
+        }
+        .draft-board {
+            margin-top: 20px;
+        }
+        .player-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .player-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .player-rank {
+            font-weight: bold;
+            color: #1976d2;
+        }
+        .player-name {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .player-stats {
+            font-size: 0.9em;
+            color: #666;
+        }
+        button {
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #1565c0;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Fantasy Basketball Mock Draft 2024-25</h1>
+        
+        <div id="status" class="status loading">
+            Initializing...
+        </div>
+        
+        <div>
+            <button id="fetch-data">Fetch Player Data</button>
+            <button id="run-draft" disabled>Run Mock Draft</button>
+        </div>
+        
+        <div id="draft-results" class="draft-board">
+            <!-- Draft results will appear here -->
+        </div>
+        
+        <div id="player-list" class="player-list">
+            <!-- Player list will appear here -->
+        </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script src="draft.js"></script>
+    <script>
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatus('Ready to fetch player data', 'success');
+            
+            document.getElementById('fetch-data').addEventListener('click', async function() {
+                this.disabled = true;
+                await fetchAndDisplayPlayers();
+                this.disabled = false;
+            });
+            
+            document.getElementById('run-draft').addEventListener('click', function() {
+                runMockDraft();
+            });
+        });
+    </script>
+</body>
+</html>
