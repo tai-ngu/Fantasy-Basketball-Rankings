@@ -14,52 +14,44 @@ class FantasyDraftAlgorithm {
             turnovers: -1.0    // Turnovers: -1 points
         };
         
-        // Position scarcity multipliers
-        this.positionMultipliers = {
-            'C': 1.10,    // Centers
-            'PF': 1.05,   // Power forwards
-            'SF': 1.0,    // Small forwards
-            'SG': 0.95,   // Shooting guards
-            'PG': 0.9     // Point guards
-        };
     }
 
 
     // Calculate fantasy value for a player
     calculateFantasyValue(player) {
-        if (!player || player.games_played === 0) return 0;
+    if (!player || player.games_played === 0) return 0;
 
-        let score = 0;
-        // Apply position multiplier
-        const positionMultiplier = this.positionMultipliers[player.position] || 1.0;
-        score *= positionMultiplier;
+    let score = 0;
+    
+    // Convert season totals to per-game averages
+    const gamesPlayed = player.games_played;
+    
+    // Calculate 3-point field goals made per game
+    score += ((player.fg3m || 0) / gamesPlayed) * this.weights.fg3m;
+    
+    // Calculate 2-point field goals made per game (FGM - FG3M)
+    const fg2m = ((player.fgm || 0) - (player.fg3m || 0)) / gamesPlayed;
+    score += fg2m * this.weights.fg2m;
+    
+    // Free throws made per game
+    score += ((player.ftm || 0) / gamesPlayed) * this.weights.ftm;
+    
+    // Other stats per game
+    score += ((player.rebounds || 0) / gamesPlayed) * this.weights.rebounds;
+    score += ((player.assists || 0) / gamesPlayed) * this.weights.assists;
+    score += ((player.steals || 0) / gamesPlayed) * this.weights.steals;
+    score += ((player.blocks || 0) / gamesPlayed) * this.weights.blocks;
+    
+    // Turnovers per game (negative impact)
+    score += ((player.turnovers || 0) / gamesPlayed) * this.weights.turnovers;
 
-        
-       // Calculate 3-point field goals made
-        score += (player.fg3m || 0) * this.weights.fg3m;
-        
-        // Calculate 2-point field goals made (FGM - FG3M)
-        const fg2m = (player.fgm || 0) - (player.fg3m || 0);
-        score += fg2m * this.weights.fg2m;
-        
-        // Free throws made
-        score += (player.ftm || 0) * this.weights.ftm;
-        
-        // Other stats
-        score += (player.rebounds || 0) * this.weights.rebounds;
-        score += (player.assists || 0) * this.weights.assists;
-        score += (player.steals || 0) * this.weights.steals;
-        score += (player.blocks || 0) * this.weights.blocks;
-        
-        // Turnovers (negative impact)
-        score += (player.turnovers || 0) * this.weights.turnovers;
-        
-        // Games played multiplier (reliability bonus)
-        const gamesPlayedMultiplier = Math.min(player.games_played / 70, 1.2); // Cap at 1.2x
-        score *= gamesPlayedMultiplier;
-        
-        return Math.max(score, 0); // Don't allow negative scores
-    }
+    
+    // Games played multiplier (reliability bonus)
+    const gamesPlayedMultiplier = Math.min(player.games_played / 70, 1.2); // Cap at 1.2x
+    score *= gamesPlayedMultiplier;
+    
+    return Math.max(score, 0); // Don't allow negative scores
+}
 
     // Rank all players by fantasy value
     rankPlayers(players) {
@@ -157,12 +149,12 @@ function displayDraftResults(draftResults) {
                     <div style="font-size: 0.9em; color: #666;">
                         <div>Team: ${pick.player.team}</div>
                         <div>Fantasy Value: ${pick.player.fantasyValue.toFixed(1)}</div>
-                        <div>PPG: ${pick.player.points?.toFixed(1) || 'N/A'} | 
-                             RPG: ${pick.player.rebounds?.toFixed(1) || 'N/A'} | 
-                             APG: ${pick.player.assists?.toFixed(1) || 'N/A'}</div>
+                        <div>PPG: ${pick.player.points && pick.player.games_played ? (pick.player.points / pick.player.games_played).toFixed(1) : 'N/A'} | 
+                             RPG: ${pick.player.rebounds && pick.player.games_played ? (pick.player.rebounds / pick.player.games_played).toFixed(1) : 'N/A'} | 
+                             APG: ${pick.player.assists && pick.player.games_played ? (pick.player.assists / pick.player.games_played).toFixed(1) : 'N/A'}</div>
                     </div>
                 </div>
             `).join('')}
         </div>
     `;
-    }
+}

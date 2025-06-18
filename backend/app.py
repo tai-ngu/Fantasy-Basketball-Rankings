@@ -11,8 +11,8 @@ except ImportError:
     NBA_API_AVAILABLE = False
     print("NBA API is not available. Please install the nba_api package with 'pip3 install nba_api'.")
 
-    app = Flask(__name__) # Create Flask app instance
-    CORS(app) # Use CORS to allow frontend to access the backend
+app = Flask(__name__) # Create Flask app instance
+CORS(app) # Use CORS to allow frontend to access the backend
 
     # API endpoint to check health of server and availability of nba_api
 @app.route('/api/health')
@@ -44,9 +44,10 @@ def get_players_2024_25():
             # Only include players who have played games
             if player.get('GP', 0) > 0:
                 players.append({
-                    'player_id': player.get('PLAYER_ID'),
+                   'player_id': player.get('PLAYER_ID'),
                     'name': player.get('PLAYER_NAME'),
                     'team': player.get('TEAM_ABBREVIATION'),
+                    'position': player.get('POSITION'),
                     'games_played': player.get('GP'),
                     'minutes': player.get('MIN'),
                     'points': player.get('PTS'),
@@ -54,6 +55,9 @@ def get_players_2024_25():
                     'assists': player.get('AST'),
                     'steals': player.get('STL'),
                     'blocks': player.get('BLK'),
+                    'fgm': player.get('FGM'),
+                    'fg3m': player.get('FG3M'),
+                    'ftm': player.get('FTM'),
                     'fg_pct': player.get('FG_PCT'),
                     'fg3_pct': player.get('FG3_PCT'),
                     'ft_pct': player.get('FT_PCT'),
@@ -75,8 +79,8 @@ def get_players_2024_25():
             'message': str(e)
         }), 500
 
-    if __name__ == '__main__':
-        print("Starting NBA API server...")
-        print("Make sure you have installed: pip3 install nba_api flask flask-cors")
-        print("Server will run on http://localhost:5000")
-        app.run(debug=True, host='0.0.0.0', port=5000)
+if __name__ == '__main__':
+    print("Starting NBA API server...")
+    print("Make sure you have installed: pip3 install nba_api flask flask-cors")
+    print("Server will run on http://localhost:5000")
+    app.run(debug=True, host='0.0.0.0', port=5000)
