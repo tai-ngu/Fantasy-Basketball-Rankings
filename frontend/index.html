@@ -3,144 +3,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fantasy Basketball Mock Draft 2025-26</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        .status {
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-        }
-        .loading {
-            background-color: #e3f2fd;
-            color: #1976d2;
-        }
-        .error {
-            background-color: #ffebee;
-            color: #c62828;
-        }
-        .success {
-            background-color: #e8f5e8;
-            color: #2e7d32;
-        }
-        .draft-board {
-            margin-top: 20px;
-        }
-        .player-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-        .player-card {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .player-rank {
-            font-weight: bold;
-            color: #1976d2;
-        }
-        .player-name {
-            font-size: 1.1em;
-            font-weight: bold;
-            margin: 5px 0;
-        }
-        .player-stats {
-            font-size: 0.9em;
-            color: #666;
-        }
-        button {
-            background-color: #1976d2;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 5px;
-        }
-        button:hover {
-            background-color: #1565c0;
-        }
-        button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-    </style>
+    <title>Fantasy Basketball Rankings 2025-26</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>Fantasy Basketball Mock Draft 2025-26</h1>
+        <h1>NBA Fantasy Basketball Rankings</h1>
         
         <div id="status" class="status loading">
             Initializing...
         </div>
         
-        <div>
-            <button id="fetch-data">Fetch Player Data</button>
-            <button id="run-draft" disabled>Run Mock Draft</button>
-        </div>
 
-        <div id="search-section" style="display: none;">
-            <div style="display: flex; gap: 10px; margin: 10px 0; align-items: center; flex-wrap: wrap;">
-                <input type="text" id="player-search" placeholder="Search players..." style="padding: 8px; width: 250px;">
-                <select id="team-filter" style="padding: 8px;">
-                    <option value="all">All Teams</option>
-                </select>
+        <div id="search-section">
+            <div class="search-controls">
+                <input type="text" id="player-search" placeholder="Search players...">
             </div>
-            <div style="margin: 10px 0;">
+            <div class="sort-controls">
                 <strong>Sort by:</strong>
-                <button id="sort-fantasy" style="padding: 5px 10px; font-size: 0.9em;">Fantasy Value</button>
-                <button id="sort-name" style="padding: 5px 10px; font-size: 0.9em;">Name</button>
-                <button id="sort-ppg" style="padding: 5px 10px; font-size: 0.9em;">Points</button>
-                <button id="sort-team" style="padding: 5px 10px; font-size: 0.9em;">Team</button>
+                <button id="sort-direction-btn" class="sort-button">↓</button>
+                <button id="sort-fantasy" class="sort-button">Fantasy Value</button>
+                <button id="sort-name" class="sort-button">Name</button>
+                
+                <div class="stat-dropdown">
+                    <button id="stat-filter-btn" class="sort-button dropdown-btn">Stat ▼</button>
+                    <div id="stat-dropdown-menu" class="dropdown-menu">
+                        <div class="dropdown-item" data-stat="ppg">Points Per Game</div>
+                        <div class="dropdown-item" data-stat="rpg">Rebounds Per Game</div>
+                        <div class="dropdown-item" data-stat="apg">Assists Per Game</div>
+                        <div class="dropdown-item" data-stat="spg">Steals Per Game</div>
+                        <div class="dropdown-item" data-stat="bpg">Blocks Per Game</div>
+                        <div class="dropdown-item" data-stat="tpg">Turnovers Per Game</div>
+                        <div class="dropdown-item" data-stat="fg_pct">Field Goal %</div>
+                        <div class="dropdown-item" data-stat="fg3_pct">3-Point %</div>
+                        <div class="dropdown-item" data-stat="ft_pct">Free Throw %</div>
+                        <div class="dropdown-item" data-stat="ts_pct">True Shooting %</div>
+                        <div class="dropdown-item" data-stat="mpg">Minutes Per Game</div>
+                    </div>
+                </div>
+                
+                <div class="team-dropdown">
+                    <button id="team-filter-btn" class="sort-button dropdown-btn">All Teams ▼</button>
+                    <div id="team-dropdown-menu" class="dropdown-menu">
+                        <div class="dropdown-item" data-team="all">All Teams</div>
+                    </div>
+                </div>
             </div>
         </div>
         
-        <div id="draft-results" class="draft-board">
-            <!-- Draft results will appear here -->
-        </div>
         
         <div id="player-list" class="player-list">
             <!-- Player list will appear here -->
         </div>
     </div>
 
-    <script src="api.js"></script>
-    <script src="draft.js"></script>
+    <!-- Player Details Modal -->
+    <div id="playerModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="playerModalContent">
+                <!-- Player details will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Player Modal Template -->
+    <template id="playerModalTemplate">
+        <div class="player-modal-header">
+            <img class="player-modal-photo" alt="Player Photo" 
+                 onerror="this.style.display='none'">
+            <div class="player-modal-info">
+                <h2 class="player-name"></h2>
+                <p><strong>Team:</strong> <span class="player-team"></span></p>
+                <p><strong>Games Played:</strong> <span class="player-games"></span></p>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-category">
+                <h3>Scoring</h3>
+                <div class="stat-row">
+                    <span>Points Per Game:</span>
+                    <span class="stat-ppg"></span>
+                </div>
+                <div class="stat-row">
+                    <span>Field Goals Made:</span>
+                    <span class="stat-fgm"></span>
+                </div>
+                <div class="stat-row">
+                    <span>3-Point Makes:</span>
+                    <span class="stat-fg3m"></span>
+                </div>
+                <div class="stat-row">
+                    <span>2-Point Makes:</span>
+                    <span class="stat-fg2m"></span>
+                </div>
+                <div class="stat-row">
+                    <span>Free Throws Made:</span>
+                    <span class="stat-ftm"></span>
+                </div>
+            </div>
+            
+            <div class="stat-category">
+                <h3>Shooting %</h3>
+                <div class="stat-row">
+                    <span>Field Goal %:</span>
+                    <span class="stat-fg-pct"></span>
+                </div>
+                <div class="stat-row">
+                    <span>3-Point %:</span>
+                    <span class="stat-fg3-pct"></span>
+                </div>
+                <div class="stat-row">
+                    <span>Free Throw %:</span>
+                    <span class="stat-ft-pct"></span>
+                </div>
+                <div class="stat-row">
+                    <span>True Shooting %:</span>
+                    <span class="stat-ts-pct"></span>
+                </div>
+            </div>
+            
+            <div class="stat-category">
+                <h3>Other Stats</h3>
+                <div class="stat-row">
+                    <span>Rebounds:</span>
+                    <span class="stat-rebounds"></span>
+                </div>
+                <div class="stat-row">
+                    <span>Assists:</span>
+                    <span class="stat-assists"></span>
+                </div>
+                <div class="stat-row">
+                    <span>Steals:</span>
+                    <span class="stat-steals"></span>
+                </div>
+                <div class="stat-row">
+                    <span>Blocks:</span>
+                    <span class="stat-blocks"></span>
+                </div>
+                <div class="stat-row">
+                    <span>Turnovers:</span>
+                    <span class="stat-turnovers"></span>
+                </div>
+            </div>
+            
+            <div class="stat-category">
+                <h3>Season Totals</h3>
+                <div class="stat-row">
+                    <span>Points:</span>
+                    <span class="stat-total-points"></span>
+                </div>
+                <div class="stat-row">
+                    <span>Rebounds:</span>
+                    <span class="stat-total-rebounds"></span>
+                </div>
+                <div class="stat-row">
+                    <span>Assists:</span>
+                    <span class="stat-total-assists"></span>
+                </div>
+                <div class="stat-row">
+                    <span>Minutes:</span>
+                    <span class="stat-total-minutes"></span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="fantasy-breakdown">
+            <h3>Fantasy Value Calculation</h3>
+            <p><strong>Scoring System:</strong> 3PM=3pts, 2PM=2pts, FTM=1pt, REB=1.2pts, AST=1.5pts, STL=2pts, BLK=2pts, TOV=-1.3pts</p>
+            
+            <div class="calculation-header">
+                <strong>Step-by-Step Calculation:</strong>
+            </div>
+            
+            <div class="calculation-steps">
+                <!-- Calculation steps will be populated here -->
+            </div>
+            
+            <div class="calculation-step">
+                <strong>Base Score: <span class="base-score"></span></strong>
+            </div>
+            
+            <div class="calculation-step">
+                Games Played Multiplier: <span class="games-multiplier"></span>
+                (<span class="games-played"></span>/70 games, capped at 1.1x)
+            </div>
+            
+            <div class="calculation-step">
+                <strong>Final Calculation: <span class="final-calculation"></span></strong>
+            </div>
+            
+            <div class="final-score">
+                Fantasy Value: <span class="final-fantasy-value"></span>
+            </div>
+        </div>
+    </template>
+
+    <script src="js/api.js"></script>
+    <script src="js/fantasy_algorithm.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
     <script>
         // Initialize the app
         document.addEventListener('DOMContentLoaded', async function() {
             try {
-                await checkBackend();
-                updateStatus('Ready to fetch player data', 'success');
-            } catch (error) {
-                updateStatus('Backend not running. Start with: python3 backend/app.py', 'error');
-            }
-            
-            document.getElementById('fetch-data').addEventListener('click', async function() {
-                this.disabled = true;
+                updateStatus('Loading player data...', 'loading');
+                
+                // Automatically fetch and display players
                 await fetchAndDisplayPlayers();
-                this.disabled = false;
-            });
-            
-            document.getElementById('run-draft').addEventListener('click', function() {
-                runMockDraft();
-            });
+                
+            } catch (error) {
+                updateStatus('Backend server not running. Start with: python3 backend/app.py', 'error');
+            }
         });
     </script>
 </body>

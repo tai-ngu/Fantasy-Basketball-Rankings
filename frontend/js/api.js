@@ -1,0 +1,97 @@
+// API Configuration - Auto-detect local vs production
+const API_BASE_URL = (function() {
+    const hostname = window.location.hostname;
+    const port = window.location.port;
+    
+    // Local development detection
+    if (hostname === 'localhost' || 
+        hostname === '127.0.0.1' || 
+        hostname === '' ||
+        port === '8000' || 
+        port === '3000' ||
+        port === '5500') {
+        return 'http://localhost:5000/api';
+    }
+    
+    // Production (Railway) detection
+    return window.location.origin + '/api';
+})();
+
+let playersData = [];
+
+// Update status message
+function updateStatus(message, type = 'loading') {
+    const statusEl = document.getElementById('status');
+    statusEl.textContent = message;
+    statusEl.className = `status ${type}`;
+    
+    // Auto-hide success messages after 4 seconds
+    if (type === 'success') {
+        setTimeout(() => {
+            statusEl.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+            statusEl.style.opacity = '0';
+            statusEl.style.transform = 'translateY(-10px)';
+            
+            // Hide completely after transition
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 500);
+        }, 3300);
+    } else {
+        // Reset styles for non-success messages
+        statusEl.style.display = 'block';
+        statusEl.style.opacity = '1';
+        statusEl.style.transform = 'translateY(0)';
+        statusEl.style.transition = '';
+    }
+}
+
+// Check if backend is running and get season info
+async function checkBackend() {
+   try {
+        const response = await fetch(`${API_BASE_URL}/health`);
+        const data = await response.json();
+        
+        // Update page title and header with dynamic season info
+        if (data.season_info) {
+            const mockDraftSeason = data.season_info.mock_draft_season;
+            document.title = `NBA Fantasy Basketball Rankings ${mockDraftSeason}`;
+            const h1Element = document.querySelector('h1');
+            if (h1Element) {
+                h1Element.textContent = `NBA Fantasy Basketball Rankings ${mockDraftSeason}`;
+            }
+        }
+        
+        return data;
+    } catch (error) {
+        throw new Error('Backend server not running. Start it with: python3 backend/app.py');
+    }
+}
+
+// Fetch player data from backend
+async function fetchPlayerData() {
+    updateStatus('Fetching player data from NBA API...', 'loading');
+    
+    try {
+        // Check if backend is running
+        await checkBackend();
+        
+        const response = await fetch(`${API_BASE_URL}/players`);
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to fetch player data');
+        }
+        
+        const data = await response.json();
+        playersData = data.players;
+        
+        updateStatus(`Successfully loaded ${data.total_count} players. ${data.description}`, 'success');
+        
+        return playersData;
+        
+    } catch (error) {
+        updateStatus(`Error: ${error.message}`, 'error');
+        throw error;
+    }
+}

@@ -1,0 +1,506 @@
+// UI and Display Logic for Fantasy Basketball Rankings
+
+// Global variables for sorting state (accessible from main.js)
+window.currentSortBy = 'fantasy'; // Default sort by fantasy value
+window.sortDirection = 'desc'; // 'desc' for high to low, 'asc' for low to high
+
+// Local references for this file
+let currentSortBy = window.currentSortBy;
+let sortDirection = window.sortDirection;
+
+function displayPlayers(players, searchTerm = '', teamFilter = 'all', positionFilter = 'all', sortBy = window.currentSortBy) {
+    // Sync local variables with global ones
+    currentSortBy = window.currentSortBy;
+    sortDirection = window.sortDirection;
+    const playerListEl = document.getElementById('player-list');
+    
+    if (!players || players.length === 0) {
+        playerListEl.innerHTML = '<p>No players found</p>';
+        return;
+    }
+    
+    // Filter players based on search term, team, and position
+    let filteredPlayers = players;
+    if (searchTerm) {
+        filteredPlayers = filteredPlayers.filter(player => 
+            player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            player.team.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }
+    if (teamFilter && teamFilter !== 'all') {
+        filteredPlayers = filteredPlayers.filter(player => 
+            player.team === teamFilter
+        );
+    }
+    if (positionFilter && positionFilter !== 'all') {
+        // Position filtering disabled - no position data available for performance
+        // All players will be shown regardless of position filter selection
+    }
+    
+    // Apply minimum games filter for stat-based sorting
+    const statSortingOptions = ['ppg', 'rpg', 'apg', 'spg', 'bpg', 'tpg', 'fg_pct', 'fg3_pct', 'ft_pct', 'ts_pct', 'mpg'];
+    if (statSortingOptions.includes(sortBy)) {
+        filteredPlayers = filteredPlayers.filter(player => player.games_played >= 10);
+    }
+    
+    // Sort players based on selected criteria
+    switch(sortBy) {
+        case 'fantasy':
+            filteredPlayers.sort((a, b) => {
+                const aVal = a.fantasyValue || 0;
+                const bVal = b.fantasyValue || 0;
+                return sortDirection === 'desc' ? bVal - aVal : aVal - bVal;
+            });
+            break;
+        case 'name':
+            filteredPlayers.sort((a, b) => {
+                return sortDirection === 'desc' ? b.name.localeCompare(a.name) : a.name.localeCompare(b.name);
+            });
+            break;
+        case 'ppg':
+            filteredPlayers.sort((a, b) => {
+                const aPPG = a.points && a.games_played ? a.points / a.games_played : 0;
+                const bPPG = b.points && b.games_played ? b.points / b.games_played : 0;
+                return sortDirection === 'desc' ? bPPG - aPPG : aPPG - bPPG;
+            });
+            break;
+        case 'rpg':
+            filteredPlayers.sort((a, b) => {
+                const aRPG = a.rebounds && a.games_played ? a.rebounds / a.games_played : 0;
+                const bRPG = b.rebounds && b.games_played ? b.rebounds / b.games_played : 0;
+                return sortDirection === 'desc' ? bRPG - aRPG : aRPG - bRPG;
+            });
+            break;
+        case 'apg':
+            filteredPlayers.sort((a, b) => {
+                const aAPG = a.assists && a.games_played ? a.assists / a.games_played : 0;
+                const bAPG = b.assists && b.games_played ? b.assists / b.games_played : 0;
+                return sortDirection === 'desc' ? bAPG - aAPG : aAPG - bAPG;
+            });
+            break;
+        case 'spg':
+            filteredPlayers.sort((a, b) => {
+                const aSPG = a.steals && a.games_played ? a.steals / a.games_played : 0;
+                const bSPG = b.steals && b.games_played ? b.steals / b.games_played : 0;
+                return sortDirection === 'desc' ? bSPG - aSPG : aSPG - bSPG;
+            });
+            break;
+        case 'bpg':
+            filteredPlayers.sort((a, b) => {
+                const aBPG = a.blocks && a.games_played ? a.blocks / a.games_played : 0;
+                const bBPG = b.blocks && b.games_played ? b.blocks / b.games_played : 0;
+                return sortDirection === 'desc' ? bBPG - aBPG : aBPG - bBPG;
+            });
+            break;
+        case 'tpg':
+            filteredPlayers.sort((a, b) => {
+                const aTPG = a.turnovers && a.games_played ? a.turnovers / a.games_played : 0;
+                const bTPG = b.turnovers && b.games_played ? b.turnovers / b.games_played : 0;
+                // For turnovers, reverse the logic: desc means low to high (better), asc means high to low (worse)
+                return sortDirection === 'desc' ? aTPG - bTPG : bTPG - aTPG;
+            });
+            break;
+        case 'fg_pct':
+            filteredPlayers.sort((a, b) => {
+                const aFG = a.fg_pct || 0;
+                const bFG = b.fg_pct || 0;
+                return sortDirection === 'desc' ? bFG - aFG : aFG - bFG;
+            });
+            break;
+        case 'fg3_pct':
+            filteredPlayers.sort((a, b) => {
+                const a3P = a.fg3_pct || 0;
+                const b3P = b.fg3_pct || 0;
+                return sortDirection === 'desc' ? b3P - a3P : a3P - b3P;
+            });
+            break;
+        case 'ft_pct':
+            filteredPlayers.sort((a, b) => {
+                const aFT = a.ft_pct || 0;
+                const bFT = b.ft_pct || 0;
+                return sortDirection === 'desc' ? bFT - aFT : aFT - bFT;
+            });
+            break;
+        case 'ts_pct':
+            filteredPlayers.sort((a, b) => {
+                const aTS = calculateTrueShootingPct(a);
+                const bTS = calculateTrueShootingPct(b);
+                return sortDirection === 'desc' ? bTS - aTS : aTS - bTS;
+            });
+            break;
+        case 'mpg':
+            filteredPlayers.sort((a, b) => {
+                const aMPG = a.minutes && a.games_played ? a.minutes / a.games_played : 0;
+                const bMPG = b.minutes && b.games_played ? b.minutes / b.games_played : 0;
+                return sortDirection === 'desc' ? bMPG - aMPG : aMPG - bMPG;
+            });
+            break;
+        case 'team':
+            filteredPlayers.sort((a, b) => {
+                return sortDirection === 'desc' ? b.team.localeCompare(a.team) : a.team.localeCompare(b.team);
+            });
+            break;
+        default:
+            filteredPlayers.sort((a, b) => {
+                const aVal = a.fantasyValue || 0;
+                const bVal = b.fantasyValue || 0;
+                return sortDirection === 'desc' ? bVal - aVal : aVal - bVal;
+            });
+    }
+    
+    if (filteredPlayers.length === 0) {
+        const searchMessage = searchTerm ? ` matching "${searchTerm}"` : '';
+        const teamMessage = teamFilter && teamFilter !== 'all' ? ` on ${teamFilter}` : '';
+        const positionMessage = positionFilter && positionFilter !== 'all' ? ` at ${positionFilter}` : '';
+        playerListEl.innerHTML = `<p>No players found${searchMessage}${teamMessage}${positionMessage}</p>`;
+        return;
+    }
+    
+    // Remove any existing count info
+    const existingCountInfo = playerListEl.parentElement.querySelector('.player-count-info');
+    if (existingCountInfo) {
+        existingCountInfo.remove();
+    }
+    
+    // Add the count info before the grid
+    const countInfo = document.createElement('div');
+    countInfo.className = 'player-count-info';
+    countInfo.textContent = `Showing ${filteredPlayers.length} of ${players.length} players`;
+    playerListEl.parentElement.insertBefore(countInfo, playerListEl);
+    
+    // Calculate fantasy rankings for all players (sorted by fantasy value)
+    const allPlayersSorted = [...players].sort((a, b) => (b.fantasyValue || 0) - (a.fantasyValue || 0));
+    const fantasyRankings = new Map();
+    allPlayersSorted.forEach((player, index) => {
+        fantasyRankings.set(player.player_id, index + 1);
+    });
+
+    // Create and set player cards
+    playerListEl.innerHTML = filteredPlayers.map((player, index) => {
+        const fantasyRank = fantasyRankings.get(player.player_id);
+        
+        // Determine which stat to show and calculate values
+        const ppg = player.points && player.games_played ? (player.points / player.games_played).toFixed(1) : 'N/A';
+        const rpg = player.rebounds && player.games_played ? (player.rebounds / player.games_played).toFixed(1) : 'N/A';
+        const apg = player.assists && player.games_played ? (player.assists / player.games_played).toFixed(1) : 'N/A';
+        
+        let ppgDisplay = `PPG: ${ppg}`;
+        let rpgDisplay = `RPG: ${rpg}`;
+        let apgDisplay = `APG: ${apg}`;
+        let extraStatDisplay = `FG%: ${player.fg_pct ? (player.fg_pct * 100).toFixed(1) + '%' : 'N/A'}`;
+        
+        // Handle sorting by stats - make the sorted stat bold and avoid duplication
+        switch(sortBy) {
+            case 'ppg':
+                ppgDisplay = `<strong>PPG: ${ppg}</strong>`;
+                break;
+            case 'rpg':
+                rpgDisplay = `<strong>RPG: ${rpg}</strong>`;
+                break;
+            case 'apg':
+                apgDisplay = `<strong>APG: ${apg}</strong>`;
+                break;
+            case 'spg':
+                extraStatDisplay = `<strong>SPG: ${player.steals && player.games_played ? (player.steals / player.games_played).toFixed(1) : 'N/A'}</strong>`;
+                break;
+            case 'bpg':
+                extraStatDisplay = `<strong>BPG: ${player.blocks && player.games_played ? (player.blocks / player.games_played).toFixed(1) : 'N/A'}</strong>`;
+                break;
+            case 'tpg':
+                extraStatDisplay = `<strong>TPG: ${player.turnovers && player.games_played ? (player.turnovers / player.games_played).toFixed(1) : 'N/A'}</strong>`;
+                break;
+            case 'fg_pct':
+                extraStatDisplay = `<strong>FG%: ${player.fg_pct ? (player.fg_pct * 100).toFixed(1) + '%' : 'N/A'}</strong>`;
+                break;
+            case 'fg3_pct':
+                extraStatDisplay = `<strong>3P%: ${player.fg3_pct ? (player.fg3_pct * 100).toFixed(1) + '%' : 'N/A'}</strong>`;
+                break;
+            case 'ft_pct':
+                extraStatDisplay = `<strong>FT%: ${player.ft_pct ? (player.ft_pct * 100).toFixed(1) + '%' : 'N/A'}</strong>`;
+                break;
+            case 'ts_pct':
+                extraStatDisplay = `<strong>TS%: ${calculateTrueShootingPct(player).toFixed(1) + '%'}</strong>`;
+                break;
+            case 'mpg':
+                extraStatDisplay = `<strong>MPG: ${player.minutes && player.games_played ? (player.minutes / player.games_played).toFixed(1) : 'N/A'}</strong>`;
+                break;
+            default:
+                extraStatDisplay = `FG%: ${player.fg_pct ? (player.fg_pct * 100).toFixed(1) + '%' : 'N/A'}`;
+        }
+        
+        return `
+        <div class="player-card" data-player-index="${index}">
+            <div class="player-rank">#${fantasyRank}</div>
+            <div class="player-card-content">
+                <img src="https://ak-static.cms.nba.com/wp-content/uploads/headshots/nba/latest/260x190/${player.player_id}.png" 
+                     alt="${player.name}" 
+                     class="player-photo"
+                     onerror="this.style.display='none'">
+                <div class="player-info">
+                    <div class="player-name">${player.name}</div>
+                    <div class="player-stats">
+                        <div>Team: ${player.team}</div>
+                        <div>Games: ${player.games_played}</div>
+                        <div class="fantasy-value">Fantasy Value: ${player.fantasyValue ? player.fantasyValue.toFixed(1) : 'N/A'}</div>
+                        <div>${ppgDisplay}</div>
+                        <div>${rpgDisplay}</div>
+                        <div>${apgDisplay}</div>
+                        <div>${extraStatDisplay}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
+    }).join('');
+    
+    // Add click event listeners to player cards
+    addPlayerCardClickHandlers(filteredPlayers);
+}
+
+// Populate team dropdown with unique teams
+function populateTeamDropdown(players) {
+    const teamDropdownMenu = document.getElementById('team-dropdown-menu');
+    const uniqueTeams = [...new Set(players.map(player => player.team))].sort();
+    
+    // Clear existing items except "All Teams"
+    teamDropdownMenu.innerHTML = '<div class="dropdown-item" data-team="all">All Teams</div>';
+    
+    // Add team options
+    uniqueTeams.forEach(team => {
+        const item = document.createElement('div');
+        item.className = 'dropdown-item';
+        item.setAttribute('data-team', team);
+        item.textContent = team;
+        teamDropdownMenu.appendChild(item);
+    });
+}
+
+
+// Calculate True Shooting Percentage using Dean Oliver's formula
+function calculateTrueShootingPct(player) {
+    const gamesPlayed = player.games_played || 1;
+    const pointsPerGame = (player.points || 0) / gamesPlayed;
+    
+    // Calculate FGA and FTA from existing data
+    const fgmPerGame = (player.fgm || 0) / gamesPlayed;
+    const ftmPerGame = (player.ftm || 0) / gamesPlayed;
+    
+    const fgaPerGame = player.fg_pct && player.fg_pct > 0 ? fgmPerGame / player.fg_pct : 0;
+    const ftaPerGame = player.ft_pct && player.ft_pct > 0 ? ftmPerGame / player.ft_pct : 0;
+    
+    if (fgaPerGame === 0 && ftaPerGame === 0) return 0;
+    
+    // True Shooting % = PTS / (2 * (FGA + 0.44 * FTA)) * 100
+    return (pointsPerGame / (2 * (fgaPerGame + 0.44 * ftaPerGame))) * 100;
+}
+
+// Setup team dropdown functionality
+function setupTeamDropdown(updateCallback) {
+    const dropdownBtn = document.getElementById('team-filter-btn');
+    const dropdownMenu = document.getElementById('team-dropdown-menu');
+    
+    // Toggle dropdown on button click
+    dropdownBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdownMenu.classList.toggle('show');
+    });
+    
+    // Handle dropdown item selection using event delegation
+    dropdownMenu.addEventListener('click', (e) => {
+        if (e.target.classList.contains('dropdown-item')) {
+            e.stopPropagation();
+            const team = e.target.getAttribute('data-team');
+            const text = e.target.textContent;
+            
+            // Update button text
+            dropdownBtn.textContent = text + ' ▼';
+            
+            // Hide dropdown and call update callback with new team
+            dropdownMenu.classList.remove('show');
+            updateCallback(team);
+        }
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', () => {
+        dropdownMenu.classList.remove('show');
+    });
+}
+
+// Setup stat dropdown functionality
+function setupStatDropdown(updateCallback) {
+    const dropdownBtn = document.getElementById('stat-filter-btn');
+    const dropdownMenu = document.getElementById('stat-dropdown-menu');
+    const dropdownItems = dropdownMenu.querySelectorAll('.dropdown-item');
+    
+    // Toggle dropdown on button click
+    dropdownBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdownMenu.classList.toggle('show');
+    });
+    
+    // Handle dropdown item selection
+    dropdownItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const stat = item.getAttribute('data-stat');
+            const text = item.textContent;
+            
+            // Update button text
+            dropdownBtn.textContent = text + ' ▼';
+            
+            // Hide dropdown and call update callback with new stat
+            dropdownMenu.classList.remove('show');
+            updateCallback(stat);
+        });
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', () => {
+        dropdownMenu.classList.remove('show');
+    });
+}
+
+// Setup sort direction button functionality
+function setupSortDirectionButton(updateCallback) {
+    const directionBtn = document.getElementById('sort-direction-btn');
+    
+    directionBtn.addEventListener('click', () => {
+        // Toggle sort direction
+        sortDirection = sortDirection === 'desc' ? 'asc' : 'desc';
+        window.sortDirection = sortDirection; // Update global reference
+        updateSortDirectionButton();
+        updateCallback();
+    });
+}
+
+// Update sort direction button text and visibility
+function updateSortDirectionButton() {
+    const directionBtn = document.getElementById('sort-direction-btn');
+    
+    // Show custom sort icons based on direction
+    if (sortDirection === 'desc') {
+        // Descending: lines getting shorter with down arrow
+        directionBtn.innerHTML = '≡↓';
+    } else {
+        // Ascending: lines getting shorter with up arrow  
+        directionBtn.innerHTML = '≡↑';
+    }
+}
+
+// Add click event handlers to player cards
+function addPlayerCardClickHandlers(players) {
+    const playerCards = document.querySelectorAll('.player-card');
+    playerCards.forEach((card, index) => {
+        card.addEventListener('click', () => {
+            const player = players[index];
+            
+            // Small delay to allow the :active transition to be visible
+            setTimeout(() => {
+                showPlayerModal(player);
+            }, 100);
+        });
+    });
+}
+
+// Show player details modal
+function showPlayerModal(player) {
+    const modal = document.getElementById('playerModal');
+    const modalContent = document.getElementById('playerModalContent');
+    const template = document.getElementById('playerModalTemplate');
+    
+    // Clone the template
+    const clone = template.content.cloneNode(true);
+    
+    // Get detailed fantasy breakdown
+    const breakdown = fantasyAlgorithm.getFantasyBreakdown(player);
+    
+    // Show modal immediately with placeholder data
+    populatePlayerModalTemplate(clone, player, breakdown);
+    modalContent.innerHTML = '';
+    modalContent.appendChild(clone);
+    modal.style.display = 'block';
+    
+    // No additional data fetching needed - all data from main API
+    
+    // Add close functionality
+    const closeBtn = modal.querySelector('.close');
+    closeBtn.onclick = () => modal.style.display = 'none';
+    
+    // Close when clicking outside modal
+    window.onclick = (event) => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    };
+}
+
+// Populate modal template with player data
+function populatePlayerModalTemplate(clone, player, breakdown) {
+    // Helper function to safely set text content
+    const setText = (selector, value) => {
+        const element = clone.querySelector(selector);
+        if (element) element.textContent = value;
+    };
+    
+    // Helper function for percentage values
+    const formatPercentage = (value) => value ? (value * 100).toFixed(1) + '%' : 'N/A';
+    
+    // Set player photo
+    const photo = clone.querySelector('.player-modal-photo');
+    photo.src = `https://ak-static.cms.nba.com/wp-content/uploads/headshots/nba/latest/260x190/${player.player_id}.png`;
+    photo.alt = player.name;
+    
+    // Data mapping for efficient population
+    const dataMap = {
+        // Basic info
+        '.player-name': player.name,
+        '.player-team': player.team,
+        '.player-games': player.games_played,
+        
+        // Scoring stats (per game)
+        '.stat-ppg': (player.points / player.games_played).toFixed(1),
+        '.stat-fgm': (player.fgm / player.games_played).toFixed(1),
+        '.stat-fg3m': breakdown.perGameStats.fg3m.toFixed(1),
+        '.stat-fg2m': breakdown.perGameStats.fg2m.toFixed(1),
+        '.stat-ftm': breakdown.perGameStats.ftm.toFixed(1),
+        
+        // Shooting percentages
+        '.stat-fg-pct': formatPercentage(player.fg_pct),
+        '.stat-fg3-pct': formatPercentage(player.fg3_pct),
+        '.stat-ft-pct': formatPercentage(player.ft_pct),
+        '.stat-ts-pct': calculateTrueShootingPct(player).toFixed(1) + '%',
+        
+        // Other stats (per game)
+        '.stat-rebounds': breakdown.perGameStats.rebounds.toFixed(1),
+        '.stat-assists': breakdown.perGameStats.assists.toFixed(1),
+        '.stat-steals': breakdown.perGameStats.steals.toFixed(1),
+        '.stat-blocks': breakdown.perGameStats.blocks.toFixed(1),
+        '.stat-turnovers': breakdown.perGameStats.turnovers.toFixed(1),
+        
+        // Season totals
+        '.stat-total-points': player.points || 0,
+        '.stat-total-rebounds': player.rebounds || 0,
+        '.stat-total-assists': player.assists || 0,
+        '.stat-total-minutes': Math.round(player.minutes || 0),
+        
+        // Fantasy breakdown
+        '.base-score': breakdown.baseScore.toFixed(2),
+        '.games-multiplier': breakdown.multipliers.gamesPlayed.toFixed(3),
+        '.games-played': player.games_played,
+        '.final-calculation': `${breakdown.baseScore.toFixed(2)} × ${breakdown.multipliers.gamesPlayed.toFixed(3)} = ${breakdown.finalScore.toFixed(2)}`,
+        '.final-fantasy-value': breakdown.finalScore.toFixed(1)
+    };
+    
+    // Apply all data mappings
+    Object.entries(dataMap).forEach(([selector, value]) => setText(selector, value));
+    
+    // Handle calculation steps (requires DOM creation)
+    const stepsContainer = clone.querySelector('.calculation-steps');
+    breakdown.steps.forEach(step => {
+        const stepDiv = document.createElement('div');
+        stepDiv.className = 'calculation-step';
+        stepDiv.textContent = step;
+        stepsContainer.appendChild(stepDiv);
+    });
+}
