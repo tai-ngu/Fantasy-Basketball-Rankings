@@ -27,9 +27,10 @@ async function fetchAndDisplayPlayers() {
         const searchInput = document.getElementById('player-search');
         let currentTeamFilter = 'all';
         let currentPositionFilter = 'all';
+        let currentInjuryFilter = 'all';
         
         function updatePlayerDisplay() {
-            displayPlayers(playersWithFantasyValues, searchInput.value, currentTeamFilter, currentPositionFilter, window.currentSortBy);
+            displayPlayers(playersWithFantasyValues, searchInput.value, currentTeamFilter, currentPositionFilter, currentInjuryFilter, window.currentSortBy);
         }
         
         searchInput.addEventListener('input', updatePlayerDisplay);
@@ -40,11 +41,17 @@ async function fetchAndDisplayPlayers() {
             updatePlayerDisplay();
         });
         
-        // Position dropdown functionality (disabled since no position data)
-        // setupPositionDropdown((newPositionFilter) => {
-        //     currentPositionFilter = newPositionFilter;
-        //     updatePlayerDisplay();
-        // });
+        // Injury dropdown functionality
+        setupInjuryDropdown((newInjuryFilter) => {
+            currentInjuryFilter = newInjuryFilter;
+            updatePlayerDisplay();
+        });
+        
+        // Position dropdown functionality
+        setupPositionDropdown((newPositionFilter) => {
+            currentPositionFilter = newPositionFilter;
+            updatePlayerDisplay();
+        });
         
         // Stat dropdown functionality
         setupStatDropdown((newSortBy) => {
@@ -86,3 +93,33 @@ async function fetchAndDisplayPlayers() {
         console.error('Failed to fetch and display players:', error);
     }
 }
+
+// Setup navigation functionality
+function setupNavigation() {
+    const navItems = document.querySelectorAll('.nav-item');
+    
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            // Remove active class from all items
+            navItems.forEach(nav => nav.classList.remove('active'));
+            
+            // Add active class to clicked item
+            item.classList.add('active');
+            
+            // Handle section switching (for now just Rankings is functional)
+            const section = item.getAttribute('data-section');
+            if (section === 'rankings') {
+                // Already showing rankings - no change needed
+            } else {
+                // Future sections - show placeholder for now
+                console.log(`Switched to ${section} section`);
+                // You can add functionality for other sections here later
+            }
+        });
+    });
+}
+
+// Initialize navigation when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    setupNavigation();
+});

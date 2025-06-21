@@ -8,7 +8,7 @@ window.sortDirection = 'desc'; // 'desc' for high to low, 'asc' for low to high
 let currentSortBy = window.currentSortBy;
 let sortDirection = window.sortDirection;
 
-function displayPlayers(players, searchTerm = '', teamFilter = 'all', positionFilter = 'all', sortBy = window.currentSortBy) {
+function displayPlayers(players, searchTerm = '', teamFilter = 'all', positionFilter = 'all', injuryFilter = 'all', sortBy = window.currentSortBy) {
     // Sync local variables with global ones
     currentSortBy = window.currentSortBy;
     sortDirection = window.sortDirection;
@@ -33,8 +33,33 @@ function displayPlayers(players, searchTerm = '', teamFilter = 'all', positionFi
         );
     }
     if (positionFilter && positionFilter !== 'all') {
-        // Position filtering disabled - no position data available for performance
-        // All players will be shown regardless of position filter selection
+        filteredPlayers = filteredPlayers.filter(player => {
+            const playerPosition = player.position;
+            if (!playerPosition) return positionFilter === 'unknown';
+            
+            // Map position abbreviations to filter categories
+            const pos = playerPosition.toUpperCase();
+            switch(positionFilter) {
+                case 'G': return pos.includes('G'); // PG, SG, G
+                case 'F': return pos.includes('F'); // SF, PF, F
+                case 'C': return pos.includes('C'); // C
+                case 'unknown': return !playerPosition;
+                default: return pos === positionFilter;
+            }
+        });
+    }
+    if (injuryFilter && injuryFilter !== 'all') {
+        filteredPlayers = filteredPlayers.filter(player => {
+            const injuryStatus = player.injury_status;
+            if (injuryFilter === 'healthy') {
+                // Healthy: no injury status or status is "Healthy"
+                return !injuryStatus || injuryStatus === 'Healthy';
+            } else if (injuryFilter === 'injured') {
+                // Injured: has injury status and it's not "Healthy"
+                return injuryStatus && injuryStatus !== 'Healthy';
+            }
+            return true;
+        });
     }
     
     // Apply minimum games filter for stat-based sorting
@@ -152,7 +177,8 @@ function displayPlayers(players, searchTerm = '', teamFilter = 'all', positionFi
         const searchMessage = searchTerm ? ` matching "${searchTerm}"` : '';
         const teamMessage = teamFilter && teamFilter !== 'all' ? ` on ${teamFilter}` : '';
         const positionMessage = positionFilter && positionFilter !== 'all' ? ` at ${positionFilter}` : '';
-        playerListEl.innerHTML = `<p>No players found${searchMessage}${teamMessage}${positionMessage}</p>`;
+        const injuryMessage = injuryFilter && injuryFilter !== 'all' ? ` (${injuryFilter} only)` : '';
+        playerListEl.innerHTML = `<p>No players found${searchMessage}${teamMessage}${positionMessage}${injuryMessage}</p>`;
         return;
     }
     
@@ -183,6 +209,33 @@ function displayPlayers(players, searchTerm = '', teamFilter = 'all', positionFi
         const ppg = player.points && player.games_played ? (player.points / player.games_played).toFixed(1) : 'N/A';
         const rpg = player.rebounds && player.games_played ? (player.rebounds / player.games_played).toFixed(1) : 'N/A';
         const apg = player.assists && player.games_played ? (player.assists / player.games_played).toFixed(1) : 'N/A';
+        
+        // Get injury status and icon with timeline
+        const getInjuryDisplay = (status, type, timeline) => {
+            if (!status || status === 'Healthy') return '';
+            
+            let icon = '🔴'; // Red for injuries
+            
+            // Compact format: "🔴 Knee (3m)" or "🔴 Injured (2w)"
+            let displayText = `${icon}`;
+            
+            // Add injury type or "Injured" if no type
+            if (type) {
+                let mainType = type.split('(')[0].trim();
+                displayText += ` ${mainType}`;
+            } else {
+                displayText += ` Injured`;
+            }
+            
+            // Add timeline in parentheses
+            if (timeline && timeline !== 'None' && timeline !== '') {
+                displayText += ` (${timeline})`;
+            }
+            
+            return `<div class="injury-status">${displayText}</div>`;
+        };
+        
+        const injuryDisplay = getInjuryDisplay(player.injury_status, player.injury_type, player.injury_timeline);
         
         let ppgDisplay = `PPG: ${ppg}`;
         let rpgDisplay = `RPG: ${rpg}`;
@@ -231,6 +284,7 @@ function displayPlayers(players, searchTerm = '', teamFilter = 'all', positionFi
         return `
         <div class="player-card" data-player-index="${index}">
             <div class="player-rank">#${fantasyRank}</div>
+            ${injuryDisplay ? `<div class="player-injury-status">${injuryDisplay.replace('<div class="injury-status">', '').replace('</div>', '')}</div>` : ''}
             <div class="player-card-content">
                 <img src="https://ak-static.cms.nba.com/wp-content/uploads/headshots/nba/latest/260x190/${player.player_id}.png" 
                      alt="${player.name}" 
@@ -238,10 +292,10 @@ function displayPlayers(players, searchTerm = '', teamFilter = 'all', positionFi
                      onerror="this.style.display='none'">
                 <div class="player-info">
                     <div class="player-name">${player.name}</div>
+                    <div class="fantasy-value">Fantasy Value: ${player.fantasyValue ? player.fantasyValue.toFixed(1) : 'N/A'}</div>
                     <div class="player-stats">
-                        <div>Team: ${player.team}</div>
+                        <div>Team: ${player.team}${player.position ? ` | Position: ${player.position}` : ''}</div>
                         <div>Games: ${player.games_played}</div>
-                        <div class="fantasy-value">Fantasy Value: ${player.fantasyValue ? player.fantasyValue.toFixed(1) : 'N/A'}</div>
                         <div>${ppgDisplay}</div>
                         <div>${rpgDisplay}</div>
                         <div>${apgDisplay}</div>
@@ -292,6 +346,74 @@ function calculateTrueShootingPct(player) {
     
     // True Shooting % = PTS / (2 * (FGA + 0.44 * FTA)) * 100
     return (pointsPerGame / (2 * (fgaPerGame + 0.44 * ftaPerGame))) * 100;
+}
+
+// Setup position dropdown functionality
+function setupPositionDropdown(updateCallback) {
+    const dropdownBtn = document.getElementById('position-filter-btn');
+    const dropdownMenu = document.getElementById('position-dropdown-menu');
+    const dropdownItems = dropdownMenu.querySelectorAll('.dropdown-item');
+    
+    // Toggle dropdown on button click
+    dropdownBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdownMenu.classList.toggle('show');
+    });
+    
+    // Handle dropdown item selection
+    dropdownItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const position = item.getAttribute('data-position');
+            const text = item.textContent;
+            
+            // Update button text
+            dropdownBtn.textContent = text + ' ▼';
+            
+            // Hide dropdown and call update callback with new position filter
+            dropdownMenu.classList.remove('show');
+            updateCallback(position);
+        });
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', () => {
+        dropdownMenu.classList.remove('show');
+    });
+}
+
+// Setup injury dropdown functionality
+function setupInjuryDropdown(updateCallback) {
+    const dropdownBtn = document.getElementById('injury-filter-btn');
+    const dropdownMenu = document.getElementById('injury-dropdown-menu');
+    const dropdownItems = dropdownMenu.querySelectorAll('.dropdown-item');
+    
+    // Toggle dropdown on button click
+    dropdownBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdownMenu.classList.toggle('show');
+    });
+    
+    // Handle dropdown item selection
+    dropdownItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const injury = item.getAttribute('data-injury');
+            const text = item.textContent;
+            
+            // Update button text
+            dropdownBtn.textContent = text + ' ▼';
+            
+            // Hide dropdown and call update callback with new injury filter
+            dropdownMenu.classList.remove('show');
+            updateCallback(injury);
+        });
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', () => {
+        dropdownMenu.classList.remove('show');
+    });
 }
 
 // Setup team dropdown functionality
@@ -456,6 +578,10 @@ function populatePlayerModalTemplate(clone, player, breakdown) {
         // Basic info
         '.player-name': player.name,
         '.player-team': player.team,
+        '.player-position': player.position || 'N/A',
+        '.player-height': player.height || 'N/A',
+        '.player-weight': player.weight || 'N/A',
+        '.player-jersey': player.jersey || 'N/A',
         '.player-games': player.games_played,
         
         // Scoring stats (per game)

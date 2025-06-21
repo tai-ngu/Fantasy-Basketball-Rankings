@@ -20,21 +20,56 @@ body {
     margin: 0 auto;
 }
 
-h1 {
-    text-align: center;
+/* ==========================================
+   NAVIGATION BAR
+   ========================================== */
+
+.main-nav {
+    display: flex;
+    justify-content: center;
+    background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 50%, #e94560 100%);
+    border-radius: 10px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.nav-item {
     color: white;
     font-family: 'Oswald', sans-serif;
-    font-weight: 700;
-    font-size: 2.5rem;
-    letter-spacing: 2px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 10px 20px;
+    margin: 0 5px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.3s ease;
     text-transform: uppercase;
-    margin: 0;
-    padding: 40px 20px;
-    text-shadow: 3px 3px 6px rgba(0,0,0,0.7);
-    background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 50%, #e94560 100%);
-    position: relative;
-    overflow: hidden;
-    border-radius: 15px;
+    letter-spacing: 1px;
+}
+
+.nav-item:hover {
+    background: rgba(255,255,255,0.1);
+    transform: translateY(-2px);
+}
+
+.nav-item.active {
+    background: rgba(255,255,255,0.2);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Mobile responsive navigation */
+@media (max-width: 600px) {
+    .main-nav {
+        flex-wrap: wrap;
+        padding: 10px;
+    }
+    
+    .nav-item {
+        font-size: 0.9rem;
+        padding: 8px 12px;
+        margin: 2px;
+    }
 }
 
 
@@ -143,7 +178,7 @@ button:disabled {
    DROPDOWN MENUS
    ========================================== */
 
-.stat-dropdown, .team-dropdown {
+.stat-dropdown, .team-dropdown, .injury-dropdown, .position-dropdown {
     position: relative;
     display: inline-block;
 }
@@ -270,6 +305,17 @@ button:disabled {
     font-size: 0.9em;
 }
 
+.player-injury-status {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    font-size: 0.65em;
+    font-weight: bold;
+    color: #666;
+    white-space: nowrap;
+    text-align: right;
+}
+
 .player-name {
     font-size: 1.1em;
     font-weight: bold;
@@ -283,6 +329,13 @@ button:disabled {
 
 .fantasy-value {
     color: #ff6b35;
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+.injury-status {
+    color: #666;
+    font-size: 0.85em;
     font-weight: bold;
 }
 

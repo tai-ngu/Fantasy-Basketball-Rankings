@@ -8,7 +8,12 @@
 </head>
 <body>
     <div class="container">
-        <h1>NBA Fantasy Basketball Rankings</h1>
+        <nav class="main-nav">
+            <div class="nav-item active" data-section="rankings">Rankings</div>
+            <div class="nav-item" data-section="stats">Player Stats (WIP)</div>
+            <div class="nav-item" data-section="analysis">Analysis (WIP)</div>
+            <div class="nav-item" data-section="about">About (WIP)</div>
+        </nav>
         
         <div id="status" class="status loading">
             Initializing...
@@ -48,6 +53,30 @@
                         <div class="dropdown-item" data-team="all">All Teams</div>
                     </div>
                 </div>
+                
+                <div class="injury-dropdown">
+                    <button id="injury-filter-btn" class="sort-button dropdown-btn">Player Status ▼</button>
+                    <div id="injury-dropdown-menu" class="dropdown-menu">
+                        <div class="dropdown-item" data-injury="all">All Players</div>
+                        <div class="dropdown-item" data-injury="healthy">Healthy</div>
+                        <div class="dropdown-item" data-injury="injured">Injured</div>
+                    </div>
+                </div>
+                
+                <div class="position-dropdown">
+                    <button id="position-filter-btn" class="sort-button dropdown-btn">All Positions ▼</button>
+                    <div id="position-dropdown-menu" class="dropdown-menu">
+                        <div class="dropdown-item" data-position="all">All Positions</div>
+                        <div class="dropdown-item" data-position="PG">Point Guard (PG)</div>
+                        <div class="dropdown-item" data-position="SG">Shooting Guard (SG)</div>
+                        <div class="dropdown-item" data-position="SF">Small Forward (SF)</div>
+                        <div class="dropdown-item" data-position="PF">Power Forward (PF)</div>
+                        <div class="dropdown-item" data-position="C">Center (C)</div>
+                        <div class="dropdown-item" data-position="G">Guard (G)</div>
+                        <div class="dropdown-item" data-position="F">Forward (F)</div>
+                        <div class="dropdown-item" data-position="unknown">No Position Listed</div>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -74,8 +103,9 @@
                  onerror="this.style.display='none'">
             <div class="player-modal-info">
                 <h2 class="player-name"></h2>
-                <p><strong>Team:</strong> <span class="player-team"></span></p>
-                <p><strong>Games Played:</strong> <span class="player-games"></span></p>
+                <p><strong>Team:</strong> <span class="player-team"></span> | <strong>Position:</strong> <span class="player-position"></span></p>
+                <p><strong>Height:</strong> <span class="player-height"></span> | <strong>Weight:</strong> <span class="player-weight"></span></p>
+                <p><strong>Games Played:</strong> <span class="player-games"></span> | <strong>Jersey:</strong> #<span class="player-jersey"></span></p>
             </div>
         </div>
         
