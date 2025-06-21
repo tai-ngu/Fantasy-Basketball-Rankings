@@ -22,19 +22,21 @@ body {
 
 h1 {
     text-align: center;
-    color: #0066cc;
+    color: white;
     font-family: 'Oswald', sans-serif;
     font-weight: 700;
-    font-size: 3.5rem;
+    font-size: 2.5rem;
     letter-spacing: 2px;
     text-transform: uppercase;
-    margin: 20px 0;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    background: linear-gradient(135deg, #0066cc 0%, #e31837 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    margin: 0;
+    padding: 40px 20px;
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.7);
+    background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 50%, #e94560 100%);
+    position: relative;
+    overflow: hidden;
+    border-radius: 15px;
 }
+
 
 button {
     background-color: #1976d2;
