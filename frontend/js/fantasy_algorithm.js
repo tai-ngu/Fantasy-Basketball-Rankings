@@ -47,7 +47,6 @@ class FantasyAlgorithm {
         }
     }
 
-
     // Calculate fantasy value for a player
     calculateFantasyValue(player) {
         if (!player || player.games_played === 0) return 0;
@@ -76,7 +75,7 @@ class FantasyAlgorithm {
         score += tovPerGame * this.weights.turnovers;
         
         // Games played multiplier
-        const gamesPlayedMultiplier = player.games_played >= 70 ? Math.min(player.games_played / 70, 1.1) : 1.0;
+        const gamesPlayedMultiplier = player.games_played >= 70 ? Math.min(player.games_played / 70, 1.07) : 1.0;
         score *= gamesPlayedMultiplier;
         
         // Apply age-based multiplier
@@ -170,7 +169,7 @@ class FantasyAlgorithm {
         breakdown.baseScore = baseScore;
         
         // Games played multiplier
-        const gamesPlayedMultiplier = player.games_played >= 70 ? Math.min(player.games_played / 70, 1.1) : 1.0;
+        const gamesPlayedMultiplier = player.games_played >= 70 ? Math.min(player.games_played / 70, 1.07) : 1.0;
         breakdown.multipliers.gamesPlayed = gamesPlayedMultiplier;
         
         // Age-based multiplier

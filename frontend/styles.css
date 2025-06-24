@@ -20,6 +20,20 @@ body {
     margin: 0 auto;
 }
 
+/* Team logo styling */
+.team-logo {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+.team-logo-corner {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 2;
+}
+
 /* ==========================================
    NAVIGATION BAR
    ========================================== */
@@ -347,16 +361,59 @@ button:disabled {
     align-items: center;
 }
 
+.player-photo-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+}
+
 .player-photo {
-    width: 80px;
-    height: 80px;
+    width: 90px;
+    height: 90px;
     border-radius: 50%;
     object-fit: cover;
-    flex-shrink: 0;
+}
+
+.player-injury-status-below {
+    margin-top: 5px;
+    font-size: 0.6rem;
+    text-align: center;
+    color: #d32f2f;
+    font-weight: bold;
 }
 
 .player-info {
     flex: 1;
+}
+
+.fantasy-value {
+    font-size: 0.9rem;
+}
+
+.stats-row {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.stats-row span {
+    flex: 1;
+}
+
+.shooting-stats-row {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.shooting-stats-row span {
+    flex: 1;
+    text-align: center;
+}
+
+.games-mpg-line {
+    margin-bottom: 8px;
 }
 
 .player-rank {

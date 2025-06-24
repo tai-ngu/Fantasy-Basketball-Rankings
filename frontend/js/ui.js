@@ -243,25 +243,43 @@ function displayPlayers(players, searchTerm = '', teamFilter = 'all', positionFi
         const rpg = player.rebounds && player.games_played ? (player.rebounds / player.games_played).toFixed(1) : 'N/A';
         const apg = player.assists && player.games_played ? (player.assists / player.games_played).toFixed(1) : 'N/A';
         
+        // Get team logo image
+        const getTeamLogo = (team) => {
+            return `<img src="https://cdn.nba.com/logos/nba/${getTeamId(team)}/global/L/logo.svg" alt="${team}" class="team-logo" onerror="this.style.display='none'">`;
+        };
+
+        // Get NBA team ID for logo URLs
+        const getTeamId = (team) => {
+            const teamIds = {
+                'ATL': '1610612737', 'BOS': '1610612738', 'BKN': '1610612751', 'CHA': '1610612766', 
+                'CHI': '1610612741', 'CLE': '1610612739', 'DAL': '1610612742', 'DEN': '1610612743',
+                'DET': '1610612765', 'GSW': '1610612744', 'HOU': '1610612745', 'IND': '1610612754',
+                'LAC': '1610612746', 'LAL': '1610612747', 'MEM': '1610612763', 'MIA': '1610612748',
+                'MIL': '1610612749', 'MIN': '1610612750', 'NOP': '1610612740', 'NYK': '1610612752',
+                'OKC': '1610612760', 'ORL': '1610612753', 'PHI': '1610612755', 'PHX': '1610612756',
+                'POR': '1610612757', 'SAC': '1610612758', 'SAS': '1610612759', 'TOR': '1610612761',
+                'UTA': '1610612762', 'WAS': '1610612764'
+            };
+            return teamIds[team] || '1610612737';
+        };
+
         // Get injury status and icon with timeline
         const getInjuryDisplay = (status, type, timeline) => {
             if (!status || status === 'Healthy') return '';
             
-            let icon = '🔴'; // Red for injuries
-            
-            let displayText = `${icon}`;
+            let displayText = '';
             
             // Add injury type or "Injured" if no type
             if (type) {
                 let mainType = type.split('(')[0].trim();
-                displayText += ` ${mainType}`;
+                displayText += `Injured (${mainType})`;
             } else {
-                displayText += ` Injured`;
+                displayText += 'Injured';
             }
             
-            // Add timeline in parentheses
+            // Add return date on new line if available
             if (timeline && timeline !== 'None' && timeline !== '') {
-                displayText += ` (${timeline})`;
+                displayText += `<br>Est. Return: ${timeline}`;
             }
             
             return `<div class="injury-status">${displayText}</div>`;
@@ -269,70 +287,89 @@ function displayPlayers(players, searchTerm = '', teamFilter = 'all', positionFi
         
         const injuryDisplay = getInjuryDisplay(player.injury_status, player.injury_type, player.injury_timeline);
         
-        let ppgDisplay = `PPG: ${ppg}`;
-        let rpgDisplay = `RPG: ${rpg}`;
-        let apgDisplay = `APG: ${apg}`;
-        let extraStatDisplay = `FG%: ${player.fg_pct ? (player.fg_pct * 100).toFixed(1) + '%' : 'N/A'}`;
+        let ptsDisplay = `PTS: ${ppg}`;
+        let rebDisplay = `REB: ${rpg}`;
+        let astDisplay = `AST: ${apg}`;
+        let stlDisplay = `STL: ${player.steals && player.games_played ? (player.steals / player.games_played).toFixed(1) : 'N/A'}`;
+        let blkDisplay = `BLK: ${player.blocks && player.games_played ? (player.blocks / player.games_played).toFixed(1) : 'N/A'}`;
+        let tovDisplay = `TOV: ${player.turnovers && player.games_played ? (player.turnovers / player.games_played).toFixed(1) : 'N/A'}`;
+        let extraStatDisplay = '';
         
-        // Handle sorting by stats - make the sorted stat bold and avoid duplication
+        // Handle sorting by stats - make the sorted stat bold in its normal position
         switch(sortBy) {
             case 'ppg':
-                ppgDisplay = `<strong>PPG: ${ppg}</strong>`;
+                ptsDisplay = `<strong>PTS: ${ppg}</strong>`;
                 break;
             case 'rpg':
-                rpgDisplay = `<strong>RPG: ${rpg}</strong>`;
+                rebDisplay = `<strong>REB: ${rpg}</strong>`;
                 break;
             case 'apg':
-                apgDisplay = `<strong>APG: ${apg}</strong>`;
+                astDisplay = `<strong>AST: ${apg}</strong>`;
                 break;
             case 'spg':
-                extraStatDisplay = `<strong>SPG: ${player.steals && player.games_played ? (player.steals / player.games_played).toFixed(1) : 'N/A'}</strong>`;
+                stlDisplay = `<strong>STL: ${player.steals && player.games_played ? (player.steals / player.games_played).toFixed(1) : 'N/A'}</strong>`;
                 break;
             case 'bpg':
-                extraStatDisplay = `<strong>BPG: ${player.blocks && player.games_played ? (player.blocks / player.games_played).toFixed(1) : 'N/A'}</strong>`;
+                blkDisplay = `<strong>BLK: ${player.blocks && player.games_played ? (player.blocks / player.games_played).toFixed(1) : 'N/A'}</strong>`;
                 break;
             case 'tpg':
-                extraStatDisplay = `<strong>TPG: ${player.turnovers && player.games_played ? (player.turnovers / player.games_played).toFixed(1) : 'N/A'}</strong>`;
+                tovDisplay = `<strong>TOV: ${player.turnovers && player.games_played ? (player.turnovers / player.games_played).toFixed(1) : 'N/A'}</strong>`;
                 break;
             case 'fg_pct':
-                extraStatDisplay = `<strong>FG%: ${player.fg_pct ? (player.fg_pct * 100).toFixed(1) + '%' : 'N/A'}</strong>`;
+                // FG% will be made bold in the bottom row
                 break;
             case 'fg3_pct':
                 extraStatDisplay = `<strong>3P%: ${player.fg3_pct ? (player.fg3_pct * 100).toFixed(1) + '%' : 'N/A'}</strong>`;
                 break;
             case 'ft_pct':
-                extraStatDisplay = `<strong>FT%: ${player.ft_pct ? (player.ft_pct * 100).toFixed(1) + '%' : 'N/A'}</strong>`;
+                // FT% will be made bold in the bottom row
                 break;
             case 'ts_pct':
                 extraStatDisplay = `<strong>TS%: ${calculateTrueShootingPct(player).toFixed(1) + '%'}</strong>`;
                 break;
             case 'mpg':
-                extraStatDisplay = `<strong>MPG: ${player.minutes && player.games_played ? (player.minutes / player.games_played).toFixed(1) : 'N/A'}</strong>`;
+                // MIN is already shown in the games line
                 break;
             default:
-                extraStatDisplay = `FG%: ${player.fg_pct ? (player.fg_pct * 100).toFixed(1) + '%' : 'N/A'}`;
+                break;
         }
         
         return `
         <div class="player-card" data-player-index="${index}">
+            <div class="team-logo-corner">${getTeamLogo(player.team)}</div>
             <div class="player-rank">#${fantasyRank}</div>
             ${rankingChange}
-            ${injuryDisplay ? `<div class="player-injury-status">${injuryDisplay.replace('<div class="injury-status">', '').replace('</div>', '')}</div>` : ''}
             <div class="player-card-content">
-                <img src="https://ak-static.cms.nba.com/wp-content/uploads/headshots/nba/latest/260x190/${player.player_id}.png" 
-                     alt="${player.name}" 
-                     class="player-photo"
-                     onerror="this.style.display='none'">
+                <div class="player-photo-section">
+                    <img src="https://ak-static.cms.nba.com/wp-content/uploads/headshots/nba/latest/260x190/${player.player_id}.png" 
+                         alt="${player.name}" 
+                         class="player-photo"
+                         onerror="this.style.display='none'">
+                    ${injuryDisplay ? `<div class="player-injury-status-below">${injuryDisplay.replace('<div class="injury-status">', '').replace('</div>', '')}</div>` : ''}
+                </div>
                 <div class="player-info">
                     <div class="player-name">${player.name}</div>
                     <div class="fantasy-value">Fantasy Value: ${player.fantasyValue ? player.fantasyValue.toFixed(1) : 'N/A'}</div>
                     <div class="player-stats">
                         <div>Team: ${player.team}${player.position ? ` | Position: ${player.position}` : ''}</div>
-                        <div>Games: ${player.games_played}</div>
-                        <div>${ppgDisplay}</div>
-                        <div>${rpgDisplay}</div>
-                        <div>${apgDisplay}</div>
-                        <div>${extraStatDisplay}</div>
+                        <div class="games-mpg-line">GP: ${player.games_played} | MIN: ${player.minutes && player.games_played ? (player.minutes / player.games_played).toFixed(1) : 'N/A'}</div>
+                        <div class="stats-row">
+                            <span>${ptsDisplay}</span>
+                            <span>${stlDisplay}</span>
+                        </div>
+                        <div class="stats-row">
+                            <span>${rebDisplay}</span>
+                            <span>${blkDisplay}</span>
+                        </div>
+                        <div class="stats-row">
+                            <span>${astDisplay}</span>
+                            <span>${tovDisplay}</span>
+                        </div>
+                        <div class="stats-row">
+                            <span>${sortBy === 'fg_pct' ? `<strong>FG%: ${player.fg_pct ? (player.fg_pct * 100).toFixed(1) + '%' : 'N/A'}</strong>` : `FG%: ${player.fg_pct ? (player.fg_pct * 100).toFixed(1) + '%' : 'N/A'}`}</span>
+                            <span>${sortBy === 'ft_pct' ? `<strong>FT%: ${player.ft_pct ? (player.ft_pct * 100).toFixed(1) + '%' : 'N/A'}</strong>` : `FT%: ${player.ft_pct ? (player.ft_pct * 100).toFixed(1) + '%' : 'N/A'}`}</span>
+                        </div>
+                        ${extraStatDisplay ? `<div class="extra-stat-line">${extraStatDisplay}</div>` : ''}
                     </div>
                 </div>
             </div>
