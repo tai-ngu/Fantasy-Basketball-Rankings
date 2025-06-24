@@ -62,6 +62,20 @@ async function checkBackend() {
             }
         }
         
+        // Update season button labels with actual season numbers
+        if (data.season_info && data.last_season_info) {
+            const currentSeason = data.season_info.stats_season;
+            const lastSeason = data.last_season_info.stats_season;
+            
+            const currentSeasonBtn = document.getElementById('current-season-btn');
+            const lastSeasonBtn = document.getElementById('last-season-btn');
+            
+            if (currentSeasonBtn && lastSeasonBtn) {
+                currentSeasonBtn.textContent = `Current Season (${currentSeason})`;
+                lastSeasonBtn.textContent = `Previous Season (${lastSeason})`;
+            }
+        }
+        
         return data;
     } catch (error) {
         throw new Error('Backend server not running. Start it with: python3 backend/app.py');
@@ -86,9 +100,64 @@ async function fetchPlayerData() {
         const data = await response.json();
         playersData = data.players;
         
-        updateStatus(`Successfully loaded ${data.total_count} players. ${data.description}`, 'success');
+        // Hide the status message completely after successful load
+        const statusEl = document.getElementById('status');
+        statusEl.style.display = 'none';
         
         return playersData;
+        
+    } catch (error) {
+        updateStatus(`Error: ${error.message}`, 'error');
+        throw error;
+    }
+}
+
+// Fetch last season player data from backend
+async function fetchLastSeasonPlayerData() {
+    updateStatus('Fetching last season player data...', 'loading');
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/players/last-season`);
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to fetch last season data');
+        }
+        
+        const data = await response.json();
+        
+        // Hide the status message completely after successful load
+        const statusEl = document.getElementById('status');
+        statusEl.style.display = 'none';
+        
+        return data.players;
+        
+    } catch (error) {
+        updateStatus(`Error: ${error.message}`, 'error');
+        throw error;
+    }
+}
+
+// FUTURE FEATURE: Fetch comparison data between current and last season
+// This function is ready for a dedicated comparison tool/page
+async function fetchSeasonComparison() {
+    updateStatus('Fetching season comparison data...', 'loading');
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/players/comparison`);
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to fetch comparison data');
+        }
+        
+        const data = await response.json();
+        
+        // Hide the status message completely after successful load
+        const statusEl = document.getElementById('status');
+        statusEl.style.display = 'none';
+        
+        return data;
         
     } catch (error) {
         updateStatus(`Error: ${error.message}`, 'error');

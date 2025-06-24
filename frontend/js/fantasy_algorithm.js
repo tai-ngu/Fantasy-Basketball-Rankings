@@ -15,6 +15,39 @@ class FantasyAlgorithm {
         };
     }
 
+    // Get age-based multiplier for fantasy value
+    getAgeMultiplier(age) {
+        // Convert age string to number if needed
+        const playerAge = parseInt(age);
+        
+        // Handle missing or invalid age data
+        if (!playerAge || playerAge < 18 || playerAge > 45) {
+            return 1.0; // Neutral multiplier for missing/invalid age
+        }
+        
+        // Age-based fantasy value adjustments
+        if (playerAge <= 20) {
+            return 0.99; // -1% boost for very young players, still developing
+        } else if (playerAge <= 22) {
+            return 1.02; // +2% boost for young players with possibly a couple of seasons of experience
+        } else if (playerAge <= 24) {   
+            return 1.03; // +3% boost for players reaching their potential
+        } else if (playerAge <= 26) {
+            return 1.04; // +4% boost for young players (emerging stars)
+        } else if (playerAge <= 29) {
+            return 1.05;  // +5% boost for players in their prime years
+        } else if (playerAge <= 31) {
+            return 1.00; // Neutral multiplier for players in their late prime
+        } else if (playerAge <= 33) {
+            return 0.99; // -1% for aging players (slight decline risk)
+        } else if (playerAge <= 35) {
+            return 0.98; // -2% for aging veterans (slight decline risk)
+        } else {
+            return 0.97; // -3% for very old players (moderate decline risk)
+        }
+    }
+
+
     // Calculate fantasy value for a player
     calculateFantasyValue(player) {
         if (!player || player.games_played === 0) return 0;
@@ -45,6 +78,10 @@ class FantasyAlgorithm {
         // Games played multiplier
         const gamesPlayedMultiplier = player.games_played >= 70 ? Math.min(player.games_played / 70, 1.1) : 1.0;
         score *= gamesPlayedMultiplier;
+        
+        // Apply age-based multiplier
+        const ageMultiplier = this.getAgeMultiplier(player.age);
+        score *= ageMultiplier;
         
         return Math.max(score, 0); // Don't allow negative scores
     }
@@ -136,7 +173,11 @@ class FantasyAlgorithm {
         const gamesPlayedMultiplier = player.games_played >= 70 ? Math.min(player.games_played / 70, 1.1) : 1.0;
         breakdown.multipliers.gamesPlayed = gamesPlayedMultiplier;
         
-        const finalScore = baseScore * gamesPlayedMultiplier;
+        // Age-based multiplier
+        const ageMultiplier = this.getAgeMultiplier(player.age);
+        breakdown.multipliers.age = ageMultiplier;
+        
+        const finalScore = baseScore * gamesPlayedMultiplier * ageMultiplier;
         breakdown.finalScore = Math.max(finalScore, 0);
         
         return breakdown;

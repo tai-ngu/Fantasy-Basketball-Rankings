@@ -201,9 +201,42 @@ function displayPlayers(players, searchTerm = '', teamFilter = 'all', positionFi
         fantasyRankings.set(player.player_id, index + 1);
     });
 
+    // FUTURE FEATURE: Calculate last season rankings for comparison tool
+    // Commented out automatic comparison - can be re-enabled for dedicated comparison feature
+    /*
+    let lastSeasonRankings = new Map();
+    if (window.lastSeasonData && currentViewingSeason === 'current') {
+        const lastSeasonSorted = [...window.lastSeasonData].sort((a, b) => (b.fantasyValue || 0) - (a.fantasyValue || 0));
+        lastSeasonSorted.forEach((player, index) => {
+            lastSeasonRankings.set(player.player_id, index + 1);
+        });
+    }
+    */
+
     // Create and set player cards
     playerListEl.innerHTML = filteredPlayers.map((player, index) => {
         const fantasyRank = fantasyRankings.get(player.player_id);
+        
+        // FUTURE FEATURE: Ranking change calculation for comparison tool
+        // Commented out automatic comparison - can be re-enabled for dedicated comparison feature
+        /*
+        let rankingChange = '';
+        if (lastSeasonRankings.size > 0 && currentViewingSeason === 'current') {
+            const lastRank = lastSeasonRankings.get(player.player_id);
+            if (lastRank) {
+                const change = lastRank - fantasyRank; // positive means moved up
+                if (change > 0) {
+                    rankingChange = `<div class="ranking-change up">↑${change}</div>`;
+                } else if (change < 0) {
+                    rankingChange = `<div class="ranking-change down">↓${Math.abs(change)}</div>`;
+                }
+            } else {
+                // New player (not in last season)
+                rankingChange = `<div class="ranking-change new">NEW</div>`;
+            }
+        }
+        */
+        let rankingChange = ''; // Empty for now - no automatic comparison
         
         // Determine which stat to show and calculate values
         const ppg = player.points && player.games_played ? (player.points / player.games_played).toFixed(1) : 'N/A';
@@ -216,7 +249,6 @@ function displayPlayers(players, searchTerm = '', teamFilter = 'all', positionFi
             
             let icon = '🔴'; // Red for injuries
             
-            // Compact format: "🔴 Knee (3m)" or "🔴 Injured (2w)"
             let displayText = `${icon}`;
             
             // Add injury type or "Injured" if no type
@@ -284,6 +316,7 @@ function displayPlayers(players, searchTerm = '', teamFilter = 'all', positionFi
         return `
         <div class="player-card" data-player-index="${index}">
             <div class="player-rank">#${fantasyRank}</div>
+            ${rankingChange}
             ${injuryDisplay ? `<div class="player-injury-status">${injuryDisplay.replace('<div class="injury-status">', '').replace('</div>', '')}</div>` : ''}
             <div class="player-card-content">
                 <img src="https://ak-static.cms.nba.com/wp-content/uploads/headshots/nba/latest/260x190/${player.player_id}.png" 
@@ -579,10 +612,22 @@ function populatePlayerModalTemplate(clone, player, breakdown) {
         '.player-name': player.name,
         '.player-team': player.team,
         '.player-position': player.position || 'N/A',
+        '.player-age': player.age || 'N/A',
         '.player-height': player.height || 'N/A',
         '.player-weight': player.weight || 'N/A',
         '.player-jersey': player.jersey || 'N/A',
         '.player-games': player.games_played,
+        
+        // Personal info details
+        '.player-age-detail': player.age || 'N/A',
+        '.player-height-detail': player.height || 'N/A',
+        '.player-weight-detail': player.weight || 'N/A',
+        '.player-position-detail': player.position || 'N/A',
+        '.player-jersey-detail': player.jersey ? `#${player.jersey}` : 'N/A',
+        '.player-team-detail': player.team || 'N/A',
+        '.player-birthdate': player.birthdate || 'N/A',
+        '.player-birthplace': player.birthplace || 'N/A',
+        '.player-college': player.college || 'N/A',
         
         // Scoring stats (per game)
         '.stat-ppg': (player.points / player.games_played).toFixed(1),
@@ -613,8 +658,10 @@ function populatePlayerModalTemplate(clone, player, breakdown) {
         // Fantasy breakdown
         '.base-score': breakdown.baseScore.toFixed(2),
         '.games-multiplier': breakdown.multipliers.gamesPlayed.toFixed(3),
+        '.age-multiplier': breakdown.multipliers.age.toFixed(3),
         '.games-played': player.games_played,
-        '.final-calculation': `${breakdown.baseScore.toFixed(2)} × ${breakdown.multipliers.gamesPlayed.toFixed(3)} = ${breakdown.finalScore.toFixed(2)}`,
+        '.player-age-breakdown': player.age || 'N/A',
+        '.final-calculation': `${breakdown.baseScore.toFixed(2)} × ${breakdown.multipliers.gamesPlayed.toFixed(3)} × ${breakdown.multipliers.age.toFixed(3)} = ${breakdown.finalScore.toFixed(2)}`,
         '.final-fantasy-value': breakdown.finalScore.toFixed(1)
     };
     
@@ -630,3 +677,20 @@ function populatePlayerModalTemplate(clone, player, breakdown) {
         stepsContainer.appendChild(stepDiv);
     });
 }
+
+// Toggle fantasy breakdown dropdown
+function toggleFantasyBreakdown() {
+    const content = document.querySelector('.fantasy-breakdown-content');
+    const arrow = document.querySelector('.dropdown-arrow');
+    
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        arrow.textContent = '▲';
+    } else {
+        content.style.display = 'none';
+        arrow.textContent = '▼';
+    }
+}
+
+// Make function globally accessible
+window.toggleFantasyBreakdown = toggleFantasyBreakdown;

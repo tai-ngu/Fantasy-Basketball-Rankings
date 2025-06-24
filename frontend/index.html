@@ -9,10 +9,12 @@
 <body>
     <div class="container">
         <nav class="main-nav">
-            <div class="nav-item active" data-section="rankings">Rankings</div>
-            <div class="nav-item" data-section="stats">Player Stats (WIP)</div>
-            <div class="nav-item" data-section="analysis">Analysis (WIP)</div>
+            <div class="nav-item active" data-section="rankings">Fantasy Basketball Rankings</div>
             <div class="nav-item" data-section="about">About (WIP)</div>
+            <div class="season-toggle">
+                <button id="current-season-btn" class="season-btn active">Current Season</button>
+                <button id="last-season-btn" class="season-btn">Previous Season</button>
+            </div>
         </nav>
         
         <div id="status" class="status loading">
@@ -103,13 +105,37 @@
                  onerror="this.style.display='none'">
             <div class="player-modal-info">
                 <h2 class="player-name"></h2>
-                <p><strong>Team:</strong> <span class="player-team"></span> | <strong>Position:</strong> <span class="player-position"></span></p>
+                <p><strong>Team:</strong> <span class="player-team"></span> | <strong>Position:</strong> <span class="player-position"></span> | <strong>Age:</strong> <span class="player-age"></span></p>
                 <p><strong>Height:</strong> <span class="player-height"></span> | <strong>Weight:</strong> <span class="player-weight"></span></p>
                 <p><strong>Games Played:</strong> <span class="player-games"></span> | <strong>Jersey:</strong> #<span class="player-jersey"></span></p>
             </div>
         </div>
         
         <div class="stats-grid">
+            <div class="stat-category">
+                <h3>Personal Info</h3>
+                <div class="stat-row">
+                    <span>Age:</span>
+                    <span class="player-age-detail"></span>
+                </div>
+                <div class="stat-row">
+                    <span>Height:</span>
+                    <span class="player-height-detail"></span>
+                </div>
+                <div class="stat-row">
+                    <span>Weight:</span>
+                    <span class="player-weight-detail"></span>
+                </div>
+                <div class="stat-row">
+                    <span>Jersey:</span>
+                    <span class="player-jersey-detail"></span>
+                </div>
+                <div class="stat-row">
+                    <span>College:</span>
+                    <span class="player-college"></span>
+                </div>
+            </div>
+            
             <div class="stat-category">
                 <h3>Scoring</h3>
                 <div class="stat-row">
@@ -157,23 +183,23 @@
             <div class="stat-category">
                 <h3>Other Stats</h3>
                 <div class="stat-row">
-                    <span>Rebounds:</span>
+                    <span>Rebounds per game:</span>
                     <span class="stat-rebounds"></span>
                 </div>
                 <div class="stat-row">
-                    <span>Assists:</span>
+                    <span>Assists per game:</span>
                     <span class="stat-assists"></span>
                 </div>
                 <div class="stat-row">
-                    <span>Steals:</span>
+                    <span>Steals per game:</span>
                     <span class="stat-steals"></span>
                 </div>
                 <div class="stat-row">
-                    <span>Blocks:</span>
+                    <span>Blocks per game:</span>
                     <span class="stat-blocks"></span>
                 </div>
                 <div class="stat-row">
-                    <span>Turnovers:</span>
+                    <span>Turnovers per game:</span>
                     <span class="stat-turnovers"></span>
                 </div>
             </div>
@@ -200,32 +226,41 @@
         </div>
         
         <div class="fantasy-breakdown">
-            <h3>Fantasy Value Calculation</h3>
-            <p><strong>Scoring System:</strong> 3PM=3pts, 2PM=2pts, FTM=1pt, REB=1.2pts, AST=1.5pts, STL=2pts, BLK=2pts, TOV=-1.3pts</p>
-            
-            <div class="calculation-header">
-                <strong>Step-by-Step Calculation:</strong>
+            <div class="fantasy-breakdown-header" onclick="toggleFantasyBreakdown()">
+                <h3>Fantasy Value Calculation <span class="dropdown-arrow">▼</span></h3>
             </div>
-            
-            <div class="calculation-steps">
-                <!-- Calculation steps will be populated here -->
-            </div>
-            
-            <div class="calculation-step">
-                <strong>Base Score: <span class="base-score"></span></strong>
-            </div>
-            
-            <div class="calculation-step">
-                Games Played Multiplier: <span class="games-multiplier"></span>
-                (<span class="games-played"></span>/70 games, capped at 1.1x)
-            </div>
-            
-            <div class="calculation-step">
-                <strong>Final Calculation: <span class="final-calculation"></span></strong>
-            </div>
-            
-            <div class="final-score">
-                Fantasy Value: <span class="final-fantasy-value"></span>
+            <div class="fantasy-breakdown-content" style="display: none;">
+                <p><strong>Scoring System:</strong> 3PM=3pts, 2PM=2pts, FTM=1pt, REB=1.2pts, AST=1.5pts, STL=2pts, BLK=2pts, TOV=-1.3pts</p>
+                
+                <div class="calculation-header">
+                    <strong>Step-by-Step Calculation:</strong>
+                </div>
+                
+                <div class="calculation-steps">
+                    <!-- Calculation steps will be populated here -->
+                </div>
+                
+                <div class="calculation-step">
+                    <strong>Base Score: <span class="base-score"></span></strong>
+                </div>
+                
+                <div class="calculation-step">
+                    Games Played Multiplier: <span class="games-multiplier"></span>
+                    (<span class="games-played"></span>/70 games, capped at 1.1x)
+                </div>
+                
+                <div class="calculation-step">
+                    Age Factor: <span class="age-multiplier"></span>
+                    (Age: <span class="player-age-breakdown"></span> - younger players get slight boost)
+                </div>
+                
+                <div class="calculation-step">
+                    <strong>Final Calculation: <span class="final-calculation"></span></strong>
+                </div>
+                
+                <div class="final-score">
+                    Fantasy Value: <span class="final-fantasy-value"></span>
+                </div>
             </div>
         </div>
     </template>

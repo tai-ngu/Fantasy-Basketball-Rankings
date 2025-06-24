@@ -58,6 +58,38 @@ body {
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
+.season-toggle {
+    margin-left: auto;
+    display: flex;
+    gap: 5px;
+}
+
+.season-btn {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border: 2px solid rgba(255,255,255,0.3);
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.season-btn:hover {
+    background: rgba(255,255,255,0.2);
+    border-color: rgba(255,255,255,0.5);
+}
+
+.season-btn.active {
+    background: rgba(255,255,255,0.3);
+    border-color: rgba(255,255,255,0.8);
+    color: #fff;
+    font-weight: 600;
+}
+
 /* Mobile responsive navigation */
 @media (max-width: 600px) {
     .main-nav {
@@ -84,15 +116,22 @@ button {
 }
 
 #sort-direction-btn {
-    background-color: transparent;
-    padding: 2px 4px;
-    font-size: 10px;
-    min-width: 16px;
+    background: none !important;
+    padding: 8px 12px;
+    font-size: 16px;
+    min-width: 40px;
     color: #333;
+    border: none !important;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
 }
 
 #sort-direction-btn:hover {
-    background-color: rgba(0,0,0,0.1);
+    background: none !important;
+    border: none !important;
+    transform: translateY(-1px);
 }
 
 button:hover {
@@ -163,15 +202,31 @@ button:disabled {
 }
 
 .sort-button {
-    padding: 8px 16px;
+    padding: 10px 18px;
     font-size: 0.9em;
-    background-color: #1976d2;
+    background: linear-gradient(135deg, #1a1a2e, #0f3460);
     color: white;
     border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    margin: 0 3px;
 }
 
 .sort-button:hover {
-    background-color: #1565c0;
+    background: linear-gradient(135deg, #0d0d1f, #0a2650);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+.sort-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
 /* ==========================================
@@ -184,15 +239,26 @@ button:disabled {
 }
 
 .dropdown-btn {
-    background-color: #1976d2;
+    background: linear-gradient(135deg, #1a1a2e, #0f3460);
     color: white;
-    border: none;
-    padding: 8px 16px;
+    border: 2px solid #cbd5e0;
+    padding: 10px 16px;
     cursor: pointer;
+    border-radius: 8px;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    margin: 0 3px;
 }
 
 .dropdown-btn:hover {
-    background-color: #1565c0;
+    background: linear-gradient(135deg, #0d0d1f, #0a2650);
+    border-color: #a0aec0;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .dropdown-menu {
@@ -304,6 +370,35 @@ button:disabled {
     border-radius: 12px;
     font-size: 0.9em;
 }
+
+/* FUTURE FEATURE: Ranking change indicators for comparison tool */
+/*
+.ranking-change {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 3px 6px;
+    border-radius: 3px;
+    font-weight: bold;
+    font-size: 0.8em;
+    z-index: 2;
+}
+
+.ranking-change.up {
+    background: rgba(34, 197, 94, 0.9); // Green
+    color: white;
+}
+
+.ranking-change.down {
+    background: rgba(239, 68, 68, 0.9); // Red
+    color: white;
+}
+
+.ranking-change.new {
+    background: rgba(59, 130, 246, 0.9); // Blue
+    color: white;
+}
+*/
 
 .player-injury-status {
     position: absolute;
@@ -439,6 +534,11 @@ button:disabled {
 }
 
 /* ==========================================
+   PERSONAL INFO IN MODAL
+   ========================================== */
+
+
+/* ==========================================
    FANTASY BREAKDOWN IN MODAL
    ========================================== */
 
@@ -450,9 +550,33 @@ button:disabled {
     border-left: 4px solid #2e7d32;
 }
 
+.fantasy-breakdown-header {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.fantasy-breakdown-header:hover {
+    background-color: rgba(46, 125, 50, 0.1);
+}
+
 .fantasy-breakdown h3 {
-    margin: 0 0 15px 0;
+    margin: 0;
     color: #2e7d32;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dropdown-arrow {
+    font-size: 0.8em;
+    transition: transform 0.2s ease;
+}
+
+.fantasy-breakdown-content {
+    margin-top: 15px;
 }
 
 .calculation-header {
