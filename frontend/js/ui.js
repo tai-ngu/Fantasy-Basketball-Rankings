@@ -4,14 +4,11 @@
 window.currentSortBy = 'fantasy'; // Default sort by fantasy value
 window.sortDirection = 'desc'; // 'desc' for high to low, 'asc' for low to high
 
-// Local references for this file
-let currentSortBy = window.currentSortBy;
-let sortDirection = window.sortDirection;
 
 function displayPlayers(players, searchTerm = '', teamFilter = 'all', positionFilter = 'all', injuryFilter = 'all', sortBy = window.currentSortBy) {
-    // Sync local variables with global ones
-    currentSortBy = window.currentSortBy;
-    sortDirection = window.sortDirection;
+    // Use global sort variables
+    const currentSortBy = window.currentSortBy;
+    const sortDirection = window.sortDirection;
     const playerListEl = document.getElementById('player-list');
     
     if (!players || players.length === 0) {
@@ -579,7 +576,7 @@ function showPlayerModal(player) {
     const clone = template.content.cloneNode(true);
     
     // Get detailed fantasy breakdown
-    const breakdown = fantasyAlgorithm.getFantasyBreakdown(player);
+    const breakdown = fantasyAlgorithm.generateFantasyBreakdown(player);
     
     // Show modal immediately with placeholder data
     populatePlayerModalTemplate(clone, player, breakdown);

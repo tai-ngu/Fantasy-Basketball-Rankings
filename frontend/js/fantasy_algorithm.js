@@ -182,10 +182,6 @@ class FantasyAlgorithm {
         return breakdown;
     }
 
-    // Get detailed fantasy breakdown for a player
-    getFantasyBreakdown(player) {
-        return this.generateFantasyBreakdown(player);
-    }
 }
 
 // Initialize the fantasy algorithm

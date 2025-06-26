@@ -44,7 +44,7 @@ def normalize_name(name):
     
     # Additional common character replacements
     replacements = {
-        'ć': 'c', 'č': 'c', 'ć': 'c',
+        'ć': 'c', 'č': 'c',
         'š': 's', 'ž': 'z',
         'ñ': 'n', 'ü': 'u', 'ö': 'o', 'ä': 'a',
         'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
@@ -149,7 +149,6 @@ def fetch_injury_data(injury_cache):
                                 timeline = ''
                                 if return_date:
                                     try:
-                                        from datetime import datetime
                                         return_dt = datetime.fromisoformat(return_date.replace('Z', '+00:00'))
                                         current_dt = datetime.now(return_dt.tzinfo)
                                         
@@ -188,14 +187,6 @@ def fetch_injury_data(injury_cache):
         elapsed_time = time.time() - start_time
         print(f"Fetched ESPN injury data in {elapsed_time:.2f}s ({len(injury_data)} injuries)")
         
-        # If ESPN didn't work, use fallback data
-        if not injury_data:
-            # Minimal fallback for major injured stars
-            injury_data = {
-                'Jayson Tatum': {'status': 'Out', 'injury': 'Achilles', 'timeline': '7 months', 'team': 'BOS'},
-                'Joel Embiid': {'status': 'Out', 'injury': 'Knee', 'timeline': '3 months', 'team': 'PHI'},
-                'Zion Williamson': {'status': 'Out', 'injury': 'Hamstring', 'timeline': '2 months', 'team': 'NOP'}
-            }
         
         # Cache the results in memory and file
         injury_cache['data'] = injury_data
@@ -286,7 +277,7 @@ async def fetch_player_bio_data_async():
     bio_data = {}
     start_time = time.time()
     
-    # Create semaphore to limit concurrent requests (avoid overwhelming ESPN API)
+    # Create semaphore to limit concurrent requests to avoid overwhelming ESPN API
     semaphore = asyncio.Semaphore(10)  # Allow up to 10 concurrent requests
     
     try:
@@ -395,7 +386,7 @@ def get_last_season_info():
     }
 
 def fetch_and_cache_players(cache, injury_cache, bio_cache, season=None):
-    """Fetch player data from NBA API, database, and store in cache"""
+    """Fetch player data from NBA API and store in cache"""
     if not NBA_API_AVAILABLE:
         print("NBA API not available, skipping pre-fetch")
         return None
@@ -408,40 +399,6 @@ def fetch_and_cache_players(cache, injury_cache, bio_cache, season=None):
         else:
             season_info = get_season_info()
             stats_season = season_info["stats_season"]
-        
-        # Database integration commented out - no PostgreSQL server available
-        # try:
-        #     from database import check_data_freshness, get_players_from_db, save_players_to_db, init_database
-        #     
-        #     # Check if database data is fresh
-        #     if not check_data_freshness(stats_season):
-        #         print(f"Loading fresh data from database for season {stats_season}")
-        #         db_players = get_players_from_db(stats_season)
-        #         if db_players:
-        #             # Store in cache
-        #             result_data = {
-        #                 'players': db_players,
-        #                 'total_count': len(db_players),
-        #                 'stats_season': stats_season,
-        #                 'description': season_info.get("description", f"Fantasy rankings for {stats_season} season (from database)")
-        #             }
-        #             
-        #             # Add mock_draft_season if available (only for current season)
-        #             if "mock_draft_season" in season_info:
-        #                 result_data['mock_draft_season'] = season_info["mock_draft_season"]
-        #             
-        #             cache['data'] = result_data
-        #             cache['timestamp'] = time.time()
-        #             
-        #             print(f"Loaded {len(db_players)} players from database in <0.01s")
-        #             return result_data
-        #     
-        #     print(f"Database data for season {stats_season} needs updating, fetching from APIs...")
-        #     
-        # except ImportError:
-        #     print("Database module not available, falling back to API + cache")
-        # except Exception as e:
-        #     print(f"Database error: {e}, falling back to API + cache")
         
         nba_start_time = time.time()
         
@@ -518,23 +475,6 @@ def fetch_and_cache_players(cache, injury_cache, bio_cache, season=None):
                     'birthplace': birthplace,
                     'college': college
                 })
-        
-        # Database saving commented out - no PostgreSQL server available
-        # try:
-        #     from database import save_players_to_db, init_database
-        #     # Try to initialize database first
-        #     init_database()
-        #     # Calculate fantasy values for database storage
-        #     players_with_fantasy = []
-        #     for player in players:
-        #         player_copy = player.copy()
-        #         # Make sure fantasy value is stored correctly
-        #         player_copy['fantasyValue'] = player.get('fantasyValue', 0)
-        #         players_with_fantasy.append(player_copy)
-        #     
-        #     save_players_to_db(players_with_fantasy, stats_season)
-        # except Exception as e:
-        #     print(f"Warning: Could not save to database: {e}")
         
         # Store in cache
         result_data = {
