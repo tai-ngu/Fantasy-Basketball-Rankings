@@ -138,29 +138,3 @@ async function fetchLastSeasonPlayerData() {
     }
 }
 
-// FUTURE FEATURE: Fetch comparison data between current and last season
-// This function is ready for a dedicated comparison tool/page
-async function fetchSeasonComparison() {
-    updateStatus('Fetching season comparison data...', 'loading');
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/players/comparison`);
-        
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Failed to fetch comparison data');
-        }
-        
-        const data = await response.json();
-        
-        // Hide the status message completely after successful load
-        const statusEl = document.getElementById('status');
-        statusEl.style.display = 'none';
-        
-        return data;
-        
-    } catch (error) {
-        updateStatus(`Error: ${error.message}`, 'error');
-        throw error;
-    }
-}

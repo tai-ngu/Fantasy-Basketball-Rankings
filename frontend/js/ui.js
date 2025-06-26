@@ -201,42 +201,12 @@ function displayPlayers(players, searchTerm = '', teamFilter = 'all', positionFi
         fantasyRankings.set(player.player_id, index + 1);
     });
 
-    // FUTURE FEATURE: Calculate last season rankings for comparison tool
-    // Commented out automatic comparison - can be re-enabled for dedicated comparison feature
-    /*
-    let lastSeasonRankings = new Map();
-    if (window.lastSeasonData && currentViewingSeason === 'current') {
-        const lastSeasonSorted = [...window.lastSeasonData].sort((a, b) => (b.fantasyValue || 0) - (a.fantasyValue || 0));
-        lastSeasonSorted.forEach((player, index) => {
-            lastSeasonRankings.set(player.player_id, index + 1);
-        });
-    }
-    */
 
     // Create and set player cards
     playerListEl.innerHTML = filteredPlayers.map((player, index) => {
         const fantasyRank = fantasyRankings.get(player.player_id);
         
-        // FUTURE FEATURE: Ranking change calculation for comparison tool
-        // Commented out automatic comparison - can be re-enabled for dedicated comparison feature
-        /*
         let rankingChange = '';
-        if (lastSeasonRankings.size > 0 && currentViewingSeason === 'current') {
-            const lastRank = lastSeasonRankings.get(player.player_id);
-            if (lastRank) {
-                const change = lastRank - fantasyRank; // positive means moved up
-                if (change > 0) {
-                    rankingChange = `<div class="ranking-change up">↑${change}</div>`;
-                } else if (change < 0) {
-                    rankingChange = `<div class="ranking-change down">↓${Math.abs(change)}</div>`;
-                }
-            } else {
-                // New player (not in last season)
-                rankingChange = `<div class="ranking-change new">NEW</div>`;
-            }
-        }
-        */
-        let rankingChange = ''; // Empty for now - no automatic comparison
         
         // Determine which stat to show and calculate values
         const ppg = player.points && player.games_played ? (player.points / player.games_played).toFixed(1) : 'N/A';
@@ -334,8 +304,12 @@ function displayPlayers(players, searchTerm = '', teamFilter = 'all', positionFi
                 break;
         }
         
+        // Check if player is injured
+        const isInjured = player.injury_status && player.injury_status !== 'Healthy';
+        
         return `
-        <div class="player-card" data-player-index="${index}">
+        <div class="player-card ${isInjured ? 'injured' : ''}" data-player-index="${index}">
+            ${isInjured ? `<div class="injury-badge">INJURED</div>` : ''}
             <div class="team-logo-corner">${getTeamLogo(player.team)}</div>
             <div class="player-rank">#${fantasyRank}</div>
             ${rankingChange}

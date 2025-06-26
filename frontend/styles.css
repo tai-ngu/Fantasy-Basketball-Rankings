@@ -355,6 +355,28 @@ button:disabled {
     transition: all 0.1s ease;
 }
 
+/* Injured player card styling */
+.player-card.injured {
+    border: 2px solid #dc2626;
+    background: linear-gradient(to bottom, rgba(220, 38, 38, 0.02), transparent);
+}
+
+.injury-badge {
+    position: absolute;
+    top: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #dc2626;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 0.55rem;
+    font-weight: bold;
+    z-index: 3;
+    text-transform: uppercase;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
 .player-card-content {
     display: flex;
     gap: 15px;
@@ -428,34 +450,6 @@ button:disabled {
     font-size: 0.9em;
 }
 
-/* FUTURE FEATURE: Ranking change indicators for comparison tool */
-/*
-.ranking-change {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    padding: 3px 6px;
-    border-radius: 3px;
-    font-weight: bold;
-    font-size: 0.8em;
-    z-index: 2;
-}
-
-.ranking-change.up {
-    background: rgba(34, 197, 94, 0.9); // Green
-    color: white;
-}
-
-.ranking-change.down {
-    background: rgba(239, 68, 68, 0.9); // Red
-    color: white;
-}
-
-.ranking-change.new {
-    background: rgba(59, 130, 246, 0.9); // Blue
-    color: white;
-}
-*/
 
 .player-injury-status {
     position: absolute;
@@ -663,3 +657,18 @@ button:disabled {
     font-weight: bold;
     margin-top: 10px;
 }
+
+/* ==========================================
+   ABOUT SECTION
+   ========================================== */
+
+#about-section {
+    margin-top: 20px;
+    padding: 0 20px;
+}
+
+
+
+
+
+

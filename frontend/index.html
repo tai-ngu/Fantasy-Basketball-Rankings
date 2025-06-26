@@ -30,7 +30,6 @@
                 <strong>Sort by:</strong>
                 <button id="sort-direction-btn" class="sort-button">↓</button>
                 <button id="sort-fantasy" class="sort-button">Fantasy Value</button>
-                <button id="sort-name" class="sort-button">Name</button>
                 
                 <div class="stat-dropdown">
                     <button id="stat-filter-btn" class="sort-button dropdown-btn">Stat ▼</button>
@@ -49,22 +48,6 @@
                     </div>
                 </div>
                 
-                <div class="team-dropdown">
-                    <button id="team-filter-btn" class="sort-button dropdown-btn">All Teams ▼</button>
-                    <div id="team-dropdown-menu" class="dropdown-menu">
-                        <div class="dropdown-item" data-team="all">All Teams</div>
-                    </div>
-                </div>
-                
-                <div class="injury-dropdown">
-                    <button id="injury-filter-btn" class="sort-button dropdown-btn">Player Status ▼</button>
-                    <div id="injury-dropdown-menu" class="dropdown-menu">
-                        <div class="dropdown-item" data-injury="all">All Players</div>
-                        <div class="dropdown-item" data-injury="healthy">Healthy</div>
-                        <div class="dropdown-item" data-injury="injured">Injured</div>
-                    </div>
-                </div>
-                
                 <div class="position-dropdown">
                     <button id="position-filter-btn" class="sort-button dropdown-btn">All Positions ▼</button>
                     <div id="position-dropdown-menu" class="dropdown-menu">
@@ -79,12 +62,35 @@
                         <div class="dropdown-item" data-position="unknown">No Position Listed</div>
                     </div>
                 </div>
+                
+                <div class="injury-dropdown">
+                    <button id="injury-filter-btn" class="sort-button dropdown-btn">Player Status ▼</button>
+                    <div id="injury-dropdown-menu" class="dropdown-menu">
+                        <div class="dropdown-item" data-injury="all">All Players</div>
+                        <div class="dropdown-item" data-injury="healthy">Healthy</div>
+                        <div class="dropdown-item" data-injury="injured">Injured</div>
+                    </div>
+                </div>
+                
+                <div class="team-dropdown">
+                    <button id="team-filter-btn" class="sort-button dropdown-btn">All Teams ▼</button>
+                    <div id="team-dropdown-menu" class="dropdown-menu">
+                        <div class="dropdown-item" data-team="all">All Teams</div>
+                    </div>
+                </div>
+                
+                <button id="sort-name" class="sort-button">Name</button>
             </div>
         </div>
         
         
         <div id="player-list" class="player-list">
             <!-- Player list will appear here -->
+        </div>
+        
+        <!-- About Section -->
+        <div id="about-section" style="display: none;">
+            
         </div>
     </div>
 

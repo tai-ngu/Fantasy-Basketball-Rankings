@@ -112,17 +112,41 @@ function setupNavigation() {
             // Add active class to clicked item
             item.classList.add('active');
             
-            // Handle section switching (for now just Rankings is functional)
+            // Handle section switching
             const section = item.getAttribute('data-section');
             if (section === 'rankings') {
-                // Already showing rankings - no change needed
-            } else {
-                // Future sections - show placeholder for now
-                console.log(`Switched to ${section} section`);
-                // You can add functionality for other sections here later
+                showRankingsSection();
+            } else if (section === 'about') {
+                showAboutSection();
             }
         });
     });
+}
+
+// Function to show rankings section
+function showRankingsSection() {
+    document.getElementById('search-section').style.display = 'block';
+    document.getElementById('player-list').style.display = 'grid';
+    document.getElementById('about-section').style.display = 'none';
+    
+    // Show player count info when returning to rankings
+    const playerCountInfo = document.querySelector('.player-count-info');
+    if (playerCountInfo) {
+        playerCountInfo.style.display = 'block';
+    }
+}
+
+// Function to show about section
+function showAboutSection() {
+    document.getElementById('search-section').style.display = 'none';
+    document.getElementById('player-list').style.display = 'none';
+    document.getElementById('about-section').style.display = 'block';
+    
+    // Hide player count info when showing about section
+    const playerCountInfo = document.querySelector('.player-count-info');
+    if (playerCountInfo) {
+        playerCountInfo.style.display = 'none';
+    }
 }
 
 // Global variables for season management
