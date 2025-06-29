@@ -207,7 +207,10 @@ body {
     font-weight: 600;
 }
 
-/* Mobile responsive navigation */
+/* ==========================================
+   MOBILE RESPONSIVENESS
+   ========================================== */
+
 @media (max-width: 600px) {
     .main-nav {
         flex-wrap: wrap;
@@ -230,6 +233,61 @@ body {
         white-space: normal;
         text-align: center;
         line-height: 1.1;
+    }
+    
+    #player-search {
+        width: 100%;
+        max-width: 280px;
+        margin: 0 auto 10px auto;
+        display: block;
+    }
+    
+    .search-controls {
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+    }
+    
+    .sort-controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+        justify-items: center;
+    }
+    
+    .sort-controls strong {
+        grid-column: 1 / -1;
+        margin-bottom: 8px;
+    }
+    
+    #sort-fantasy {
+        order: 1;
+    }
+    
+    .stat-dropdown {
+        order: 1;
+    }
+    
+    #sort-name {
+        order: 1;
+    }
+    
+    .injury-dropdown {
+        order: 2;
+    }
+    
+    .position-dropdown {
+        order: 2;
+    }
+    
+    .team-dropdown {
+        order: 2;
+    }
+    
+    .dropdown-btn {
+        font-size: 0.8rem;
+        padding: 8px 12px;
+        min-width: 120px;
     }
 }
 
