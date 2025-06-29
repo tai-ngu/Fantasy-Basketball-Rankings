@@ -64,6 +64,8 @@ def health_check():
 # API endpoint to get player stats 
 @app.route('/api/players')
 def get_players():
+    start_time = time.time()
+    
     if not NBA_API_AVAILABLE:
         return jsonify({
             "error": "nba_api not installed",
@@ -72,15 +74,24 @@ def get_players():
 
     # Check cache first
     current_time = time.time()
+    
     if cache['data'] and (current_time - cache['timestamp']) < cache['duration']:
+        cache_age = current_time - cache['timestamp']
+        response_time = time.time() - start_time
+        print(f"📦 Cache: {response_time:.3f}s (age: {cache_age:.0f}s)")
         return jsonify(cache['data'])
     
     # If no cache, fetch fresh data
+    fetch_start = time.time()
     fresh_data = fetch_players(cache, injury_cache, bio_cache)
     
     if fresh_data:
+        total_time = time.time() - start_time
+        print(f"🔄 Fresh: {total_time:.3f}s")
         return jsonify(fresh_data)
     else:
+        error_time = time.time() - start_time
+        print(f"❌ Error: {error_time:.3f}s")
         return jsonify({
             'error': 'Failed to fetch NBA data',
             'message': 'Could not retrieve player data'
@@ -116,11 +127,16 @@ def get_last_season_players():
 
 
 if __name__ == '__main__':
-    print("Starting NBA API server...")
+    print("🚀 Starting server...")
     
     # Pre-fetch data on startup for instant loading
+    prefetch_start = time.time()
     fetch_players(cache, injury_cache, bio_cache)
+    prefetch_time = time.time() - prefetch_start
     
     port = int(os.environ.get('PORT', 5000))
-    print(f"Server running on port {port}")
+    
+    print(f"✅ Startup: {prefetch_time:.3f}s")
+    print(f"🌐 Server running on port {port}")
+    
     app.run(debug=False, host='0.0.0.0', port=port)

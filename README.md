@@ -112,7 +112,7 @@ The custom algorithm evaluates players based on:
 - **Concurrent API Requests**: Fetches data from multiple sources simultaneously
 - **Multi-Tier Caching**: In-memory and file-based caching
 - **Smart Data Processing**: Optimized player matching and normalization
-- **Load Time**: ~0.07 seconds with cache, ~1.2 seconds fresh fetch for 500+ players
+- **Load Time**: ~0.07 seconds with cache, ~0.5 seconds with fresh fetch for 500+ players
 
 ## Data Sources
 

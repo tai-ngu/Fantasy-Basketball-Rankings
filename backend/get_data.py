@@ -415,12 +415,13 @@ def fetch_players(cache, injury_cache, bio_cache, season=None):
         )
         
         player_stats_data = player_stats.get_data_frames()[0].to_dict(orient='records')
+        nba_time = time.time() - nba_start_time
         
         # Fetch injury data
+        espn_start_time = time.time()
         injury_data = get_injuries(injury_cache)
-        
-        # Fetch bio data
         bio_data = get_bio(bio_cache)
+        espn_time = time.time() - espn_start_time
         
         # Process players
         players = []
@@ -496,8 +497,7 @@ def fetch_players(cache, injury_cache, bio_cache, season=None):
         cache['data'] = result_data
         cache['timestamp'] = time.time()
         
-        nba_elapsed = time.time() - nba_start_time
-        print(f"Fetched NBA player data in {nba_elapsed:.2f}s ({len(players)} players)")
+        print(f"🏀 NBA API: {nba_time:.3f}s | 📺 ESPN API: {espn_time:.3f}s")
         
         return cache['data']
         

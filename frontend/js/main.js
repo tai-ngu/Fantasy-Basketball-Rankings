@@ -3,9 +3,6 @@
 // Main function to fetch and display players
 async function fetchAndDisplayPlayers() {
     try {
-        // Check backend and update season button labels first
-        await checkBackend();
-        
         const players = await fetchPlayerData();
         
         // Calculate fantasy values for ALL players
@@ -88,12 +85,6 @@ async function fetchAndDisplayPlayers() {
             updatePlayerDisplay();
         });
         
-        document.getElementById('sort-team').addEventListener('click', function() {
-            window.currentSortBy = 'team';
-            window.sortDirection = 'desc'; // Reset to default
-            updateSortDirectionButton();
-            updatePlayerDisplay();
-        });
         
     } catch (error) {
         console.error('Failed to fetch and display players:', error);
