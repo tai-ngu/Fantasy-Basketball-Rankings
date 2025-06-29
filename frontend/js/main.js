@@ -159,6 +159,8 @@ function setupSeasonToggle() {
     const currentSeasonBtn = document.getElementById('current-season-btn');
     const lastSeasonBtn = document.getElementById('last-season-btn');
     
+    if (!currentSeasonBtn || !lastSeasonBtn) return;
+    
     currentSeasonBtn.addEventListener('click', () => {
         if (currentViewingSeason !== 'current') {
             currentViewingSeason = 'current';
