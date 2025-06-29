@@ -1,14 +1,14 @@
-# NBA Fantasy Basketball Rankings
+# StatLine Fantasy: NBA Fantasy Basketball Rankings
 
 A full-stack web application that provides real-time NBA player rankings using a custom fantasy scoring algorithm. Built with Flask, JavaScript, and integrates the NBA and ESPN API to deliver comprehensive player statistics, injury reports, and biographical data.
 
 ## About
 
-This project is designed for fantasy basketball users and ranks NBA players using a custom algorithm that calculates each player's "fantasy value." The algorithm considers stats, age, games played, and injury status to help managers make better drafting and trading decisions across different teams and positions. All rankings are for the upcoming season using the previous season's stats (e.g 2024-2025 stats for 2025-2026 rankings).
+This project is designed for fantasy basketball users and ranks NBA players using a custom algorithm that calculates each player's "fantasy value." The algorithm considers stats, age, games played, and injury status to help managers make better drafting and trading decisions across different teams and positions. All player rankings are for the upcoming season using the previous season's stats (e.g 2024-2025 stats for 2025-2026 rankings).
 
 Real-time injury data ensures that rankings reflect current player availability, which is crucial for fantasy success. The system automatically takes into accounts for factors such as games played and player age, providing a more in-depth evaluation than simple per-game stats.
 
-While these rankings are designed to serve as a valuable analytical tool, by no means is this a true ranking as basketball involves many factors that an algorithm cannot capture. The rankings are best used as a starting point for fantasy decisions, combined with your own basketball knowledge and intuition.
+While these rankings are designed to serve as a valuable analytical tool, *by no means is this a true ranking* as basketball involves many factors that an algorithm cannot capture. The rankings are best used as a starting point for fantasy decisions, combined with your own basketball knowledge and intuition.
 
 ## Features
 
