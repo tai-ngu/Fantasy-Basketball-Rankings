@@ -62,7 +62,7 @@ def normalize_name(name):
     # Clean up extra spaces and return
     return ' '.join(ascii_name.split())
 
-def load_cache_from_file(cache_file, cache_dict):
+def load_cache(cache_file, cache_dict):
     """Load cached data from file if it exists and is valid"""
     try:
         if os.path.exists(cache_file):
@@ -80,7 +80,7 @@ def load_cache_from_file(cache_file, cache_dict):
     
     return False
 
-def save_cache_to_file(cache_file, cache_dict):
+def save_cache(cache_file, cache_dict):
     """Save cached data to file"""
     try:
         # Create cache directory if it doesn't exist
@@ -98,7 +98,7 @@ def save_cache_to_file(cache_file, cache_dict):
     except Exception as e:
         print(f"Error saving cache to {cache_file}: {e}")
 
-def fetch_injury_data(injury_cache):
+def get_injuries(injury_cache):
     """Fetch real injury data from multiple sources"""
     current_time = time.time()
     
@@ -107,14 +107,14 @@ def fetch_injury_data(injury_cache):
         return injury_cache['data']
     
     # Try loading from file cache
-    if load_cache_from_file(INJURY_CACHE_FILE, injury_cache):
+    if load_cache(INJURY_CACHE_FILE, injury_cache):
         return injury_cache['data']
     
     injury_data = {}
     start_time = time.time()
     
     try:
-        # Try ESPN API v3 (correct structure based on actual response)
+        # Try ESPN API v3
         try:
             url = "http://site.api.espn.com/apis/site/v2/sports/basketball/nba/injuries"
             response = requests.get(url, timeout=10)
@@ -191,14 +191,14 @@ def fetch_injury_data(injury_cache):
         # Cache the results in memory and file
         injury_cache['data'] = injury_data
         injury_cache['timestamp'] = current_time
-        save_cache_to_file(INJURY_CACHE_FILE, injury_cache)
+        save_cache(INJURY_CACHE_FILE, injury_cache)
         
         return injury_data
         
     except Exception as e:
         return {}
 
-async def fetch_team_roster(session, team_abbr, team_id, semaphore):
+async def get_roster(session, team_abbr, team_id, semaphore):
     """Fetch roster data for a single team asynchronously"""
     async with semaphore:  # Limit concurrent requests
         try:
@@ -272,12 +272,12 @@ async def fetch_team_roster(session, team_abbr, team_id, semaphore):
         
         return {}
 
-async def fetch_player_bio_data_async():
+async def get_bio_async():
     """Fetch player biographical data concurrently from ESPN API"""
     bio_data = {}
     start_time = time.time()
     
-    # Create semaphore to limit concurrent requests to avoid overwhelming ESPN API
+    # Create semaphore to limit concurrent requests
     semaphore = asyncio.Semaphore(10)  # Allow up to 10 concurrent requests
     
     try:
@@ -288,7 +288,7 @@ async def fetch_player_bio_data_async():
             # Create tasks for all teams
             tasks = []
             for team_abbr, team_id in ESPN_TEAM_IDS.items():
-                task = fetch_team_roster(session, team_abbr, team_id, semaphore)
+                task = get_roster(session, team_abbr, team_id, semaphore)
                 tasks.append(task)
             
             # Execute all requests concurrently
@@ -308,7 +308,7 @@ async def fetch_player_bio_data_async():
         print(f"Error in async bio data fetch: {e}")
         return {}
 
-def fetch_player_bio_data(bio_cache):
+def get_bio(bio_cache):
     """Wrapper to run async bio data fetching"""
     current_time = time.time()
     
@@ -317,17 +317,17 @@ def fetch_player_bio_data(bio_cache):
         return bio_cache['data']
     
     # Try loading from file cache
-    if load_cache_from_file(BIO_CACHE_FILE, bio_cache):
+    if load_cache(BIO_CACHE_FILE, bio_cache):
         return bio_cache['data']
     
     try:
         # Run async function in event loop
-        bio_data = asyncio.run(fetch_player_bio_data_async())
+        bio_data = asyncio.run(get_bio_async())
         
         # Cache the results in memory and file
         bio_cache['data'] = bio_data
         bio_cache['timestamp'] = current_time
-        save_cache_to_file(BIO_CACHE_FILE, bio_cache)
+        save_cache(BIO_CACHE_FILE, bio_cache)
         
         return bio_data
         
@@ -339,7 +339,7 @@ def get_season_info():
     """
     Dynamically determine the current NBA season for fantasy rankings.
     NBA seasons run from October to June, so:
-    - If current month is June-September: use current year as end of previous season
+    - If current month is June-September: fantasy prep for NEXT season using previous season data
     - If current month is October-May: use current year as end of current season
     """
     now = datetime.now()
@@ -354,18 +354,23 @@ def get_season_info():
         # Fantasy rankings using current season stats
         current_season = f"{current_year - 1}-{str(current_year)[2:]}"
         stats_season = f"{current_year - 1}-{str(current_year)[2:]}"
-    else:  # July-September: offseason
-        # Fantasy rankings using previous completed season stats
-        current_season = f"{current_year - 1}-{str(current_year)[2:]}"
-        stats_season = f"{current_year - 1}-{str(current_year)[2:]}"
+    else:  # July-September: offseason - fantasy prep for NEXT season
+        # Display upcoming season but use previous season's data for rankings
+        current_season = f"{current_year}-{str(current_year + 1)[2:]}"  # 2025-26 for display
+        stats_season = f"{current_year - 1}-{str(current_year)[2:]}"    # 2024-25 data to use
+    
+    # TEMP: Force 2025-26 display for fantasy prep (remove this later)
+    current_season = "2025-26"
+    if stats_season == current_season:
+        stats_season = "2024-25"  # Use 2024-25 data for 2025-26 fantasy prep
     
     return {
-        "current_season": current_season,
-        "stats_season": stats_season,
-        "description": f"Fantasy rankings for {current_season} season"
+        "current_season": current_season,  # What to display (2025-26)
+        "stats_season": stats_season,      # What data to fetch (2024-25)
+        "description": f"Fantasy rankings for {current_season} season using {stats_season} stats"
     }
 
-def get_last_season_info():
+def get_last_season():
     """Get the previous season's information for historical rankings"""
     current_season_info = get_season_info()
     current_stats_season = current_season_info["stats_season"]
@@ -385,7 +390,7 @@ def get_last_season_info():
         "description": f"Historical fantasy rankings for {prev_stats_season} season"
     }
 
-def fetch_and_cache_players(cache, injury_cache, bio_cache, season=None):
+def fetch_players(cache, injury_cache, bio_cache, season=None):
     """Fetch player data from NBA API and store in cache"""
     if not NBA_API_AVAILABLE:
         print("NBA API not available, skipping pre-fetch")
@@ -412,10 +417,10 @@ def fetch_and_cache_players(cache, injury_cache, bio_cache, season=None):
         player_stats_data = player_stats.get_data_frames()[0].to_dict(orient='records')
         
         # Fetch injury data
-        injury_data = fetch_injury_data(injury_cache)
+        injury_data = get_injuries(injury_cache)
         
         # Fetch bio data
-        bio_data = fetch_player_bio_data(bio_cache)
+        bio_data = get_bio(bio_cache)
         
         # Process players
         players = []

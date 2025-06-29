@@ -5,9 +5,9 @@ import time
 
 # Import data fetching functions from get_data module
 from get_data import (
-    fetch_and_cache_players, 
+    fetch_players, 
     get_season_info,
-    get_last_season_info,
+    get_last_season,
     NBA_API_AVAILABLE
 )
 
@@ -29,18 +29,18 @@ injury_cache = {
     'duration': 21600  # Cache for 6 hours
 }
 
-# Cache for player bio data (position, height, weight, jersey)
+# Cache for player bio data
 bio_cache = {
     'data': None,
     'timestamp': 0,
-    'duration': 86400  # Cache for 24 hours (bio data refreshes daily)
+    'duration': 86400  # Cache for 24 hours
 }
 
-# Cache for last season data (historical data - cache longer)
+# Cache for last season data 
 last_season_cache = {
     'data': None,
     'timestamp': 0,
-    'duration': 604800  # Cache for 7 days (historical data won't change)
+    'duration': 604800  # Cache for 7 days
 }
 
 # Serve the frontend
@@ -52,7 +52,7 @@ def index():
 @app.route('/api/health')
 def health_check():
     season_info = get_season_info()
-    last_season_info = get_last_season_info()
+    last_season_info = get_last_season()
     
     return jsonify({
         "status": "ok", 
@@ -76,7 +76,7 @@ def get_players():
         return jsonify(cache['data'])
     
     # If no cache, fetch fresh data
-    fresh_data = fetch_and_cache_players(cache, injury_cache, bio_cache)
+    fresh_data = fetch_players(cache, injury_cache, bio_cache)
     
     if fresh_data:
         return jsonify(fresh_data)
@@ -101,10 +101,10 @@ def get_last_season_players():
         return jsonify(last_season_cache['data'])
     
     # If no cache, fetch fresh data for last season
-    last_season_info = get_last_season_info()
+    last_season_info = get_last_season()
     last_season = last_season_info['stats_season']
     
-    fresh_data = fetch_and_cache_players(last_season_cache, injury_cache, bio_cache, season=last_season)
+    fresh_data = fetch_players(last_season_cache, injury_cache, bio_cache, season=last_season)
     
     if fresh_data:
         return jsonify(fresh_data)
@@ -119,7 +119,7 @@ if __name__ == '__main__':
     print("Starting NBA API server...")
     
     # Pre-fetch data on startup for instant loading
-    fetch_and_cache_players(cache, injury_cache, bio_cache)
+    fetch_players(cache, injury_cache, bio_cache)
     
     port = int(os.environ.get('PORT', 5000))
     print(f"Server running on port {port}")

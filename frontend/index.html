@@ -3,24 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fantasy Basketball Rankings 2025-26</title>
+    <title>StatLine Fantasy</title>
+    <link rel="icon" type="image/png" href="statline fantasy logo.png">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <nav class="main-nav">
-            <div class="nav-item active" data-section="rankings">Fantasy Basketball Rankings</div>
-            <div class="nav-item" data-section="about">About (WIP)</div>
-            <div class="season-toggle">
-                <button id="current-season-btn" class="season-btn active">Current Season</button>
-                <button id="last-season-btn" class="season-btn">Previous Season</button>
+        <header class="main-header">
+            <div class="header-brand">
+                <div class="brand-text-container">
+                    <div class="brand-text">Fantasy Basketball Rankings</div>
+                    <div class="season-selector">
+                        <span class="season-subtitle" id="season-subtitle">(2025-26)</span>
+                        <button class="season-dropdown-btn" id="season-dropdown-btn">▼</button>
+                        <div class="season-dropdown-menu" id="season-dropdown-menu">
+                            <div class="season-dropdown-item" data-season="2025-26">2025-26 Season</div>
+                            <div class="season-dropdown-item" data-season="2024-25">2024-25 Season</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </nav>
+        </header>
         
         <div id="status" class="status loading">
             Initializing...
         </div>
-        
 
         <div id="search-section">
             <div class="search-controls">
@@ -88,9 +95,9 @@
         </div>
         
         <!-- About Section -->
-        <div id="about-section" style="display: none;">
+        <!-- <div id="about-section" style="display: none;">
             
-        </div>
+        </div> -->
     </div>
 
     <!-- Player Details Modal -->

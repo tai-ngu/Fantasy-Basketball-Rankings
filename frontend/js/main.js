@@ -221,8 +221,82 @@ function displayPlayersForSeason(players) {
     searchInput.value = ''; // Clear search when switching seasons
 }
 
+// Function to update rankings for a selected season
+async function updateRankingsForSeason(selectedSeason) {
+    try {
+        updateStatus('Loading rankings for ' + selectedSeason + '...', 'loading');
+        
+        let playersData;
+        
+        if (selectedSeason === '2025-26') {
+            // Current/upcoming season - use main API endpoint
+            playersData = await fetchPlayerData();
+        } else if (selectedSeason === '2024-25') {
+            // Last season - use last season API endpoint
+            playersData = await fetchLastSeasonPlayerData();
+        }
+        
+        // Calculate fantasy values
+        const playersWithFantasyValues = playersData.map(player => ({
+            ...player,
+            fantasyValue: fantasyAlgorithm.calculateFantasyValue(player)
+        }));
+        
+        // Update global data and display
+        window.playersData = playersWithFantasyValues;
+        displayPlayers(playersWithFantasyValues);
+        
+        // Update team dropdown for new data
+        populateTeamDropdown(playersWithFantasyValues);
+        
+        // Clear any filters/search
+        document.getElementById('player-search').value = '';
+        
+        // Hide status message
+        const statusEl = document.getElementById('status');
+        statusEl.style.display = 'none';
+        
+    } catch (error) {
+        console.error('Error updating rankings for season:', selectedSeason, error);
+        updateStatus('Error loading data for ' + selectedSeason, 'error');
+    }
+}
+
+// Season dropdown functionality
+function setupSeasonDropdown() {
+    const dropdownBtn = document.getElementById('season-dropdown-btn');
+    const dropdownMenu = document.getElementById('season-dropdown-menu');
+    const seasonSubtitle = document.getElementById('season-subtitle');
+    
+    if (!dropdownBtn || !dropdownMenu || !seasonSubtitle) return;
+    
+    // Toggle dropdown
+    dropdownBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+    });
+    
+    // Handle season selection
+    dropdownMenu.addEventListener('click', async (e) => {
+        if (e.target.classList.contains('season-dropdown-item')) {
+            const selectedSeason = e.target.dataset.season;
+            seasonSubtitle.textContent = `(${selectedSeason})`;
+            dropdownMenu.style.display = 'none';
+            
+            // Update rankings based on selected season
+            await updateRankingsForSeason(selectedSeason);
+        }
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', () => {
+        dropdownMenu.style.display = 'none';
+    });
+}
+
 // Initialize navigation when page loads
 document.addEventListener('DOMContentLoaded', () => {
     setupNavigation();
     setupSeasonToggle();
+    setupSeasonDropdown();
 });
