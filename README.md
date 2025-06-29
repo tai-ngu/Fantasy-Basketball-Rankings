@@ -12,7 +12,7 @@ While these rankings are designed to serve as a valuable analytical tool, *by no
 
 ## Features
 
-- **Custom Fantasy Algorithm**: Scoring system that weights different statistics (3PM=3pts, STL=3pts, BLK=3pts, etc.)
+- **Custom Fantasy Algorithm**: Scoring system that weights different statistics (3PM=3pts, STL=2pts, BLK=2pts, etc.)
 - **Real-Time Data**: Live NBA statistics from official NBA API
 - **Injury Tracking**: Current injury status and return timelines from ESPN
 - **Advanced Filtering**: Filter by team, position, injury status, and stats
