@@ -219,6 +219,18 @@ body {
         padding: 8px 12px;
         margin: 2px;
     }
+    
+    .main-header {
+        padding: 10px 15px;
+    }
+    
+    .brand-text {
+        font-size: 1.6rem;
+        letter-spacing: 0.5px;
+        white-space: normal;
+        text-align: center;
+        line-height: 1.1;
+    }
 }
 
 
