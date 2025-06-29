@@ -2,7 +2,7 @@
 
 class FantasyAlgorithm {
     constructor() {
-        // Weights for different statistical categories (default fantasy basketball values)
+        // Weights for different statistical categories
         this.weights = {
             fg3m: 3.0,         // Three Point Field Goals: 3 points
             fg2m: 2.0,         // Two Point Field Goals: 2 points
@@ -33,17 +33,17 @@ class FantasyAlgorithm {
         } else if (playerAge <= 24) {   
             return 1.03; // +3% boost for players reaching their potential
         } else if (playerAge <= 26) {
-            return 1.04; // +4% boost for young players (emerging stars)
+            return 1.04; // +4% boost for young players
         } else if (playerAge <= 29) {
             return 1.05;  // +5% boost for players in their prime years
         } else if (playerAge <= 31) {
             return 1.00; // Neutral multiplier for players in their late prime
         } else if (playerAge <= 33) {
-            return 0.99; // -1% for aging players (slight decline risk)
+            return 0.99; // -1% for aging players
         } else if (playerAge <= 35) {
-            return 0.98; // -2% for aging veterans (slight decline risk)
+            return 0.98; // -2% for aging veterans
         } else {
-            return 0.97; // -3% for very old players (moderate decline risk)
+            return 0.97; // -3% for very old players
         }
     }
 
@@ -182,6 +182,23 @@ class FantasyAlgorithm {
         return breakdown;
     }
 
+    // Calculate True Shooting Percentage using Dean Oliver's formula
+    calculateTrueShootingPct(player) {
+        const gamesPlayed = player.games_played || 1;
+        const pointsPerGame = (player.points || 0) / gamesPlayed;
+        
+        // Calculate FGA and FTA from existing data
+        const fgmPerGame = (player.fgm || 0) / gamesPlayed;
+        const ftmPerGame = (player.ftm || 0) / gamesPlayed;
+        
+        const fgaPerGame = player.fg_pct && player.fg_pct > 0 ? fgmPerGame / player.fg_pct : 0;
+        const ftaPerGame = player.ft_pct && player.ft_pct > 0 ? ftmPerGame / player.ft_pct : 0;
+        
+        if (fgaPerGame === 0 && ftaPerGame === 0) return 0;
+        
+        // True Shooting % = PTS / (2 * (FGA + 0.44 * FTA)) * 100
+        return (pointsPerGame / (2 * (fgaPerGame + 0.44 * ftaPerGame))) * 100;
+    }
 }
 
 // Initialize the fantasy algorithm

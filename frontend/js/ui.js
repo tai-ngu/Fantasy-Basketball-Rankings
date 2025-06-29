@@ -1,14 +1,228 @@
 // UI and Display Logic for Fantasy Basketball Rankings
 
-// Global variables for sorting state (accessible from main.js)
+// ====================
+// GLOBAL STATE
+// ====================
 window.currentSortBy = 'fantasy'; // Default sort by fantasy value
 window.sortDirection = 'desc'; // 'desc' for high to low, 'asc' for low to high
 
+// ====================
+// CONSTANTS
+// ====================
+const STAT_SORT_OPTIONS = ['ppg', 'rpg', 'apg', 'spg', 'bpg', 'tpg', 'fg_pct', 'fg3_pct', 'ft_pct', 'ts_pct', 'mpg'];
+const MIN_GAMES_FOR_STATS = 10;
 
-function displayPlayers(players, searchTerm = '', teamFilter = 'all', positionFilter = 'all', injuryFilter = 'all', sortBy = window.currentSortBy) {
-    // Use global sort variables
-    const currentSortBy = window.currentSortBy;
+// ====================
+// UTILITY FUNCTIONS
+// ====================
+function getTeamId(team) {
+    const teamIds = {
+        'ATL': '1610612737', 'BOS': '1610612738', 'BKN': '1610612751', 'CHA': '1610612766', 
+        'CHI': '1610612741', 'CLE': '1610612739', 'DAL': '1610612742', 'DEN': '1610612743',
+        'DET': '1610612765', 'GSW': '1610612744', 'HOU': '1610612745', 'IND': '1610612754',
+        'LAC': '1610612746', 'LAL': '1610612747', 'MEM': '1610612763', 'MIA': '1610612748',
+        'MIL': '1610612749', 'MIN': '1610612750', 'NOP': '1610612740', 'NYK': '1610612752',
+        'OKC': '1610612760', 'ORL': '1610612753', 'PHI': '1610612755', 'PHX': '1610612756',
+        'POR': '1610612757', 'SAC': '1610612758', 'SAS': '1610612759', 'TOR': '1610612761',
+        'UTA': '1610612762', 'WAS': '1610612764'
+    };
+    return teamIds[team] || '1610612737';
+}
+
+function getTeamLogo(team) {
+    return `<img src="https://cdn.nba.com/logos/nba/${getTeamId(team)}/global/L/logo.svg" alt="${team}" class="team-logo" onerror="this.style.display='none'">`;
+}
+
+function getInjuryDisplay(status, type, timeline) {
+    if (!status || status === 'Healthy') return '';
+    
+    let displayText = '';
+    
+    // Add injury type or "Injured" if no type
+    if (type) {
+        let mainType = type.split('(')[0].trim();
+        displayText += `Injured (${mainType})`;
+    } else {
+        displayText += 'Injured';
+    }
+    
+    // Add return date on new line if available
+    if (timeline && timeline !== 'None' && timeline !== '') {
+        displayText += `<br>Est. Return: ${timeline}`;
+    }
+    
+    return `<div class="injury-status">${displayText}</div>`;
+}
+
+// ====================
+// FILTERING FUNCTIONS
+// ====================
+function filterBySearch(players, searchTerm) {
+    return players.filter(player => 
+        player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        player.team.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+}
+
+function filterByTeam(players, teamFilter) {
+    return players.filter(player => player.team === teamFilter);
+}
+
+function filterByPosition(players, positionFilter) {
+    return players.filter(player => {
+        const playerPosition = player.position;
+        if (!playerPosition) return positionFilter === 'unknown';
+        
+        const pos = playerPosition.toUpperCase();
+        switch(positionFilter) {
+            case 'G': return pos.includes('G');
+            case 'F': return pos.includes('F');
+            case 'C': return pos.includes('C');
+            case 'unknown': return !playerPosition;
+            default: return pos === positionFilter;
+        }
+    });
+}
+
+function filterByInjury(players, injuryFilter) {
+    return players.filter(player => {
+        const injuryStatus = player.injury_status;
+        if (injuryFilter === 'healthy') {
+            return !injuryStatus || injuryStatus === 'Healthy';
+        } else if (injuryFilter === 'injured') {
+            return injuryStatus && injuryStatus !== 'Healthy';
+        }
+        return true;
+    });
+}
+
+function filterByMinGames(players) {
+    return players.filter(player => player.games_played >= MIN_GAMES_FOR_STATS);
+}
+
+function applyAllFilters(players, searchTerm, teamFilter, positionFilter, injuryFilter, sortBy) {
+    let filtered = [...players];
+    
+    if (searchTerm) {
+        filtered = filterBySearch(filtered, searchTerm);
+    }
+    if (teamFilter && teamFilter !== 'all') {
+        filtered = filterByTeam(filtered, teamFilter);
+    }
+    if (positionFilter && positionFilter !== 'all') {
+        filtered = filterByPosition(filtered, positionFilter);
+    }
+    if (injuryFilter && injuryFilter !== 'all') {
+        filtered = filterByInjury(filtered, injuryFilter);
+    }
+    if (STAT_SORT_OPTIONS.includes(sortBy)) {
+        filtered = filterByMinGames(filtered);
+    }
+    
+    return filtered;
+}
+
+// ====================
+// SORTING FUNCTIONS
+// ====================
+function sortPlayers(players, sortBy) {
     const sortDirection = window.sortDirection;
+    const sortedPlayers = [...players];
+    
+    switch(sortBy) {
+        case 'fantasy':
+            return sortedPlayers.sort((a, b) => {
+                const aVal = a.fantasyValue || 0;
+                const bVal = b.fantasyValue || 0;
+                return sortDirection === 'desc' ? bVal - aVal : aVal - bVal;
+            });
+        case 'name':
+            return sortedPlayers.sort((a, b) => {
+                return sortDirection === 'desc' ? b.name.localeCompare(a.name) : a.name.localeCompare(b.name);
+            });
+        case 'ppg':
+            return sortedPlayers.sort((a, b) => {
+                const aPPG = a.points && a.games_played ? a.points / a.games_played : 0;
+                const bPPG = b.points && b.games_played ? b.points / b.games_played : 0;
+                return sortDirection === 'desc' ? bPPG - aPPG : aPPG - bPPG;
+            });
+        case 'rpg':
+            return sortedPlayers.sort((a, b) => {
+                const aRPG = a.rebounds && a.games_played ? a.rebounds / a.games_played : 0;
+                const bRPG = b.rebounds && b.games_played ? b.rebounds / b.games_played : 0;
+                return sortDirection === 'desc' ? bRPG - aRPG : aRPG - bRPG;
+            });
+        case 'apg':
+            return sortedPlayers.sort((a, b) => {
+                const aAPG = a.assists && a.games_played ? a.assists / a.games_played : 0;
+                const bAPG = b.assists && b.games_played ? b.assists / b.games_played : 0;
+                return sortDirection === 'desc' ? bAPG - aAPG : aAPG - bAPG;
+            });
+        case 'spg':
+            return sortedPlayers.sort((a, b) => {
+                const aSPG = a.steals && a.games_played ? a.steals / a.games_played : 0;
+                const bSPG = b.steals && b.games_played ? b.steals / b.games_played : 0;
+                return sortDirection === 'desc' ? bSPG - aSPG : aSPG - bSPG;
+            });
+        case 'bpg':
+            return sortedPlayers.sort((a, b) => {
+                const aBPG = a.blocks && a.games_played ? a.blocks / a.games_played : 0;
+                const bBPG = b.blocks && b.games_played ? b.blocks / b.games_played : 0;
+                return sortDirection === 'desc' ? bBPG - aBPG : aBPG - bBPG;
+            });
+        case 'tpg':
+            return sortedPlayers.sort((a, b) => {
+                const aTPG = a.turnovers && a.games_played ? a.turnovers / a.games_played : 0;
+                const bTPG = b.turnovers && b.games_played ? b.turnovers / b.games_played : 0;
+                return sortDirection === 'desc' ? aTPG - bTPG : bTPG - aTPG;
+            });
+        case 'fg_pct':
+            return sortedPlayers.sort((a, b) => {
+                const aFG = a.fg_pct || 0;
+                const bFG = b.fg_pct || 0;
+                return sortDirection === 'desc' ? bFG - aFG : aFG - bFG;
+            });
+        case 'fg3_pct':
+            return sortedPlayers.sort((a, b) => {
+                const a3P = a.fg3_pct || 0;
+                const b3P = b.fg3_pct || 0;
+                return sortDirection === 'desc' ? b3P - a3P : a3P - b3P;
+            });
+        case 'ft_pct':
+            return sortedPlayers.sort((a, b) => {
+                const aFT = a.ft_pct || 0;
+                const bFT = b.ft_pct || 0;
+                return sortDirection === 'desc' ? bFT - aFT : aFT - bFT;
+            });
+        case 'ts_pct':
+            return sortedPlayers.sort((a, b) => {
+                const aTS = fantasyAlgorithm.calculateTrueShootingPct(a);
+                const bTS = fantasyAlgorithm.calculateTrueShootingPct(b);
+                return sortDirection === 'desc' ? bTS - aTS : aTS - bTS;
+            });
+        case 'mpg':
+            return sortedPlayers.sort((a, b) => {
+                const aMPG = a.minutes && a.games_played ? a.minutes / a.games_played : 0;
+                const bMPG = b.minutes && b.games_played ? b.minutes / b.games_played : 0;
+                return sortDirection === 'desc' ? bMPG - aMPG : aMPG - bMPG;
+            });
+        case 'team':
+            return sortedPlayers.sort((a, b) => {
+                return sortDirection === 'desc' ? b.team.localeCompare(a.team) : a.team.localeCompare(b.team);
+            });
+        default:
+            return sortedPlayers.sort((a, b) => {
+                const aVal = a.fantasyValue || 0;
+                const bVal = b.fantasyValue || 0;
+                return sortDirection === 'desc' ? bVal - aVal : aVal - bVal;
+            });
+    }
+}
+
+// ====================
+// PLAYER DISPLAY
+// ====================
+function displayPlayers(players, searchTerm = '', teamFilter = 'all', positionFilter = 'all', injuryFilter = 'all', sortBy = window.currentSortBy) {
     const playerListEl = document.getElementById('player-list');
     
     if (!players || players.length === 0) {
@@ -16,54 +230,11 @@ function displayPlayers(players, searchTerm = '', teamFilter = 'all', positionFi
         return;
     }
     
-    // Filter players based on search term, team, and position
-    let filteredPlayers = players;
-    if (searchTerm) {
-        filteredPlayers = filteredPlayers.filter(player => 
-            player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            player.team.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }
-    if (teamFilter && teamFilter !== 'all') {
-        filteredPlayers = filteredPlayers.filter(player => 
-            player.team === teamFilter
-        );
-    }
-    if (positionFilter && positionFilter !== 'all') {
-        filteredPlayers = filteredPlayers.filter(player => {
-            const playerPosition = player.position;
-            if (!playerPosition) return positionFilter === 'unknown';
-            
-            // Map position abbreviations to filter categories
-            const pos = playerPosition.toUpperCase();
-            switch(positionFilter) {
-                case 'G': return pos.includes('G'); // PG, SG, G
-                case 'F': return pos.includes('F'); // SF, PF, F
-                case 'C': return pos.includes('C'); // C
-                case 'unknown': return !playerPosition;
-                default: return pos === positionFilter;
-            }
-        });
-    }
-    if (injuryFilter && injuryFilter !== 'all') {
-        filteredPlayers = filteredPlayers.filter(player => {
-            const injuryStatus = player.injury_status;
-            if (injuryFilter === 'healthy') {
-                // Healthy: no injury status or status is "Healthy"
-                return !injuryStatus || injuryStatus === 'Healthy';
-            } else if (injuryFilter === 'injured') {
-                // Injured: has injury status and it's not "Healthy"
-                return injuryStatus && injuryStatus !== 'Healthy';
-            }
-            return true;
-        });
-    }
+    // Apply all filters
+    const filteredPlayers = applyAllFilters(players, searchTerm, teamFilter, positionFilter, injuryFilter, sortBy);
     
-    // Apply minimum games filter for stat-based sorting
-    const statSortingOptions = ['ppg', 'rpg', 'apg', 'spg', 'bpg', 'tpg', 'fg_pct', 'fg3_pct', 'ft_pct', 'ts_pct', 'mpg'];
-    if (statSortingOptions.includes(sortBy)) {
-        filteredPlayers = filteredPlayers.filter(player => player.games_played >= 10);
-    }
+    // Sort the filtered players
+    const sortedPlayers = sortPlayers(filteredPlayers, sortBy);
     
     // Sort players based on selected criteria
     switch(sortBy) {
@@ -145,8 +316,8 @@ function displayPlayers(players, searchTerm = '', teamFilter = 'all', positionFi
             break;
         case 'ts_pct':
             filteredPlayers.sort((a, b) => {
-                const aTS = calculateTrueShootingPct(a);
-                const bTS = calculateTrueShootingPct(b);
+                const aTS = fantasyAlgorithm.calculateTrueShootingPct(a);
+                const bTS = fantasyAlgorithm.calculateTrueShootingPct(b);
                 return sortDirection === 'desc' ? bTS - aTS : aTS - bTS;
             });
             break;
@@ -210,47 +381,6 @@ function displayPlayers(players, searchTerm = '', teamFilter = 'all', positionFi
         const rpg = player.rebounds && player.games_played ? (player.rebounds / player.games_played).toFixed(1) : 'N/A';
         const apg = player.assists && player.games_played ? (player.assists / player.games_played).toFixed(1) : 'N/A';
         
-        // Get team logo image
-        const getTeamLogo = (team) => {
-            return `<img src="https://cdn.nba.com/logos/nba/${getTeamId(team)}/global/L/logo.svg" alt="${team}" class="team-logo" onerror="this.style.display='none'">`;
-        };
-
-        // Get NBA team ID for logo URLs
-        const getTeamId = (team) => {
-            const teamIds = {
-                'ATL': '1610612737', 'BOS': '1610612738', 'BKN': '1610612751', 'CHA': '1610612766', 
-                'CHI': '1610612741', 'CLE': '1610612739', 'DAL': '1610612742', 'DEN': '1610612743',
-                'DET': '1610612765', 'GSW': '1610612744', 'HOU': '1610612745', 'IND': '1610612754',
-                'LAC': '1610612746', 'LAL': '1610612747', 'MEM': '1610612763', 'MIA': '1610612748',
-                'MIL': '1610612749', 'MIN': '1610612750', 'NOP': '1610612740', 'NYK': '1610612752',
-                'OKC': '1610612760', 'ORL': '1610612753', 'PHI': '1610612755', 'PHX': '1610612756',
-                'POR': '1610612757', 'SAC': '1610612758', 'SAS': '1610612759', 'TOR': '1610612761',
-                'UTA': '1610612762', 'WAS': '1610612764'
-            };
-            return teamIds[team] || '1610612737';
-        };
-
-        // Get injury status and icon with timeline
-        const getInjuryDisplay = (status, type, timeline) => {
-            if (!status || status === 'Healthy') return '';
-            
-            let displayText = '';
-            
-            // Add injury type or "Injured" if no type
-            if (type) {
-                let mainType = type.split('(')[0].trim();
-                displayText += `Injured (${mainType})`;
-            } else {
-                displayText += 'Injured';
-            }
-            
-            // Add return date on new line if available
-            if (timeline && timeline !== 'None' && timeline !== '') {
-                displayText += `<br>Est. Return: ${timeline}`;
-            }
-            
-            return `<div class="injury-status">${displayText}</div>`;
-        };
         
         const injuryDisplay = getInjuryDisplay(player.injury_status, player.injury_type, player.injury_timeline);
         
@@ -292,7 +422,7 @@ function displayPlayers(players, searchTerm = '', teamFilter = 'all', positionFi
                 // FT% will be made bold in the bottom row
                 break;
             case 'ts_pct':
-                extraStatDisplay = `<strong>TS%: ${calculateTrueShootingPct(player).toFixed(1) + '%'}</strong>`;
+                extraStatDisplay = `<strong>TS%: ${fantasyAlgorithm.calculateTrueShootingPct(player).toFixed(1) + '%'}</strong>`;
                 break;
             case 'mpg':
                 // MIN is already shown in the games line
@@ -371,24 +501,10 @@ function populateTeamDropdown(players) {
 }
 
 
-// Calculate True Shooting Percentage using Dean Oliver's formula
-function calculateTrueShootingPct(player) {
-    const gamesPlayed = player.games_played || 1;
-    const pointsPerGame = (player.points || 0) / gamesPlayed;
-    
-    // Calculate FGA and FTA from existing data
-    const fgmPerGame = (player.fgm || 0) / gamesPlayed;
-    const ftmPerGame = (player.ftm || 0) / gamesPlayed;
-    
-    const fgaPerGame = player.fg_pct && player.fg_pct > 0 ? fgmPerGame / player.fg_pct : 0;
-    const ftaPerGame = player.ft_pct && player.ft_pct > 0 ? ftmPerGame / player.ft_pct : 0;
-    
-    if (fgaPerGame === 0 && ftaPerGame === 0) return 0;
-    
-    // True Shooting % = PTS / (2 * (FGA + 0.44 * FTA)) * 100
-    return (pointsPerGame / (2 * (fgaPerGame + 0.44 * ftaPerGame))) * 100;
-}
 
+// ====================
+// DROPDOWN HANDLERS
+// ====================
 // Setup position dropdown functionality
 function setupPositionDropdown(updateCallback) {
     const dropdownBtn = document.getElementById('position-filter-btn');
@@ -598,6 +714,9 @@ function showPlayerModal(player) {
     };
 }
 
+// ====================
+// MODAL FUNCTIONS
+// ====================
 // Populate modal template with player data
 function populatePlayerModalTemplate(clone, player, breakdown) {
     // Helper function to safely set text content
@@ -648,7 +767,7 @@ function populatePlayerModalTemplate(clone, player, breakdown) {
         '.stat-fg-pct': formatPercentage(player.fg_pct),
         '.stat-fg3-pct': formatPercentage(player.fg3_pct),
         '.stat-ft-pct': formatPercentage(player.ft_pct),
-        '.stat-ts-pct': calculateTrueShootingPct(player).toFixed(1) + '%',
+        '.stat-ts-pct': fantasyAlgorithm.calculateTrueShootingPct(player).toFixed(1) + '%',
         
         // Other stats (per game)
         '.stat-rebounds': breakdown.perGameStats.rebounds.toFixed(1),

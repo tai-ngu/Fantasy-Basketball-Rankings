@@ -54,11 +54,11 @@ async function checkBackend() {
         
         // Update page title and header with dynamic season info
         if (data.season_info) {
-            const mockDraftSeason = data.season_info.mock_draft_season;
-            document.title = `NBA Fantasy Basketball Rankings ${mockDraftSeason}`;
+            const currentSeason = data.season_info.current_season;
+            document.title = `NBA Fantasy Basketball Rankings ${currentSeason}`;
             const h1Element = document.querySelector('h1');
             if (h1Element) {
-                h1Element.textContent = `NBA Fantasy Basketball Rankings ${mockDraftSeason}`;
+                h1Element.textContent = `NBA Fantasy Basketball Rankings ${currentSeason}`;
             }
         }
         

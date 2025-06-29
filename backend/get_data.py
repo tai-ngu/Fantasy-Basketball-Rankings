@@ -337,7 +337,7 @@ def fetch_player_bio_data(bio_cache):
 
 def get_season_info():
     """
-    Dynamically determine the current mock draft season and the previous season for stats.
+    Dynamically determine the current NBA season for fantasy rankings.
     NBA seasons run from October to June, so:
     - If current month is June-September: use current year as end of previous season
     - If current month is October-May: use current year as end of current season
@@ -347,22 +347,22 @@ def get_season_info():
     current_month = now.month
     
     if current_month >= 10:  # October-December: new season has started
-        # Mock draft for next season, using current season stats
-        mock_draft_season = f"{current_year + 1}-{str(current_year + 2)[2:]}"
+        # Fantasy rankings using current season stats
+        current_season = f"{current_year}-{str(current_year + 1)[2:]}"
         stats_season = f"{current_year}-{str(current_year + 1)[2:]}"
     elif current_month <= 6:  # January-June: season is ongoing
-        # Mock draft for next season, using current season stats
-        mock_draft_season = f"{current_year}-{str(current_year + 1)[2:]}"
+        # Fantasy rankings using current season stats
+        current_season = f"{current_year - 1}-{str(current_year)[2:]}"
         stats_season = f"{current_year - 1}-{str(current_year)[2:]}"
     else:  # July-September: offseason
-        # Mock draft for upcoming season, using previous season stats
-        mock_draft_season = f"{current_year}-{str(current_year + 1)[2:]}"
+        # Fantasy rankings using previous completed season stats
+        current_season = f"{current_year - 1}-{str(current_year)[2:]}"
         stats_season = f"{current_year - 1}-{str(current_year)[2:]}"
     
     return {
-        "mock_draft_season": mock_draft_season,
+        "current_season": current_season,
         "stats_season": stats_season,
-        "description": f"Retrieved fantasy rankings for {mock_draft_season} season using {stats_season} stats"
+        "description": f"Fantasy rankings for {current_season} season"
     }
 
 def get_last_season_info():
@@ -484,9 +484,9 @@ def fetch_and_cache_players(cache, injury_cache, bio_cache, season=None):
             'description': season_info.get("description", f"Fantasy rankings for {stats_season} season")
         }
         
-        # Add mock_draft_season if available (only for current season)
-        if "mock_draft_season" in season_info:
-            result_data['mock_draft_season'] = season_info["mock_draft_season"]
+        # Add current_season if available
+        if "current_season" in season_info:
+            result_data['current_season'] = season_info["current_season"]
         
         cache['data'] = result_data
         cache['timestamp'] = time.time()
