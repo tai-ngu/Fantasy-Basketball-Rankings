@@ -100,7 +100,7 @@ The custom algorithm evaluates players based on:
 - Assists = 1.5 points
 - Steals = 2 points
 - Blocks = 2 points
-- Turnovers = -1.3 points
+- Turnovers = -1.5 points
 
 **Additional Factors:**
 - **Efficiency Metrics**: True shooting percentage, turnover impact
